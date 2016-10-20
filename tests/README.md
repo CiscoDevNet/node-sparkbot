@@ -22,7 +22,7 @@ Each sample can be launched from the same set of command lines install then run 
 
 Note that the SPARK_TOKEN env variable is required to run all samples that read message contents.
 
-Once your bot is started, read this [guide to expose it publically and create a Cisco Spark webhook](../docs/HowToRegisterOnSpark.md).
+Once your bot is started, read this [guide to expose it publically and create a Cisco Spark webhook](../docs/SettingUpYourSparkBot.md).
 
 
 ``` bash

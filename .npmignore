@@ -1,0 +1,18 @@
+# IDE
+.idea/
+.vscode
+
+# Docker
+.gitignore
+
+# Build & node artefacts 
+Makefile
+# REDUNDANT: automatically removed by npm
+node_modules/
+npm-debug.log
+
+# We also package the tests on npm
+#tests/
+
+
+

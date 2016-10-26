@@ -1,0 +1,13 @@
+{
+  "name": "my-sparkbot-sample",
+  "version": "v0.0.1",
+  "description": "my Cisco Spark bot sample",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "debug": "^2.2.0",
+    "express": "^4.13.4",
+    "node-sparkbot": "^0.9.1",
+    "node-sparkclient": "^0.1.0",
+    "request": "^2.74.0"
+  }
+}

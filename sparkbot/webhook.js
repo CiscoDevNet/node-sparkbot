@@ -101,8 +101,9 @@ function Webhook(config) {
 		.get(function (req, res) {
 			debug("healtch check hitted");
 			res.json({
-				message		: "Congrats, your Cisco Spark webhook is up and running",
+				message			: "Congrats, your Cisco Spark bot is up and running",
 				since			: new Date(started).toISOString(),
+				tip				: "Don't forget to create WebHooks to start receiving events from Cisco Spark: https://developer.ciscospark.com/endpoint-webhooks-post.html",
 				listeners		: Object.keys(self.listeners),
 				token			: (self.token != null),
 				account			: {
@@ -115,8 +116,7 @@ function Webhook(config) {
 					trimMention	: self.interpreter.trimMention,
 					ignoreSelf  : self.interpreter.ignoreSelf
 				},
-				commands        : Object.keys(self.router.commands),
-				tip			: "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html"
+				commands        : Object.keys(self.router.commands)
 			});
 		})
 		.post(function (req, res) {

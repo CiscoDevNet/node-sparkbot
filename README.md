@@ -6,20 +6,24 @@ Yet another opiniated framework to quickly build [Cisco Spark Bots](https://deve
 - leveraged by a few DevNet learning labs, and bot samples. 
 
 This project focusses on the [framework itself](#architecture) and its [testing companions](./tests/README.md).
-If you're looking for ready-to-run Spark bots built with the library, jump to the [node-sparkbot-samples](https://github.com/ObjectIsAdvantag/node-sparkbot-samples).
+If you're looking for ready-to-run Cisco Spark bots built with the library, jump to the [node-sparkbot-samples](https://github.com/CiscoDevNet/node-sparkbot-samples).
 
 
 ## Quickstart
 
+Copy a sample from [Quickstart](https://github.com/CiscoDevNet/node-sparkbot/tree/master/quickstart) or the directory itself.
+
+Then open a bash terminal and type:
+
 ``` bash
-> npm install node-sparkbot
-> cd node-sparkbot
-> DEBUG=sparkbot* node onEvent-all-all.js
+> npm install
+> DEBUG=sparkbot* node tests/onEvent-all-all.js
 ...
 sparkbot Cisco Spark Bot started on port: 8080 +2ms
 ```
 
-Done, your bot is live, let's hit its healtcheck endpoint
+Done, your bot is live, let's hit its healthcheck endpoint
+
 ```
 # simply run: curl http://localhost:8080 
 # or if you like formatting, install jq and run:
@@ -27,6 +31,7 @@ $ curl http://localhost:8080 | jq -C
 {
   "message": "Congrats, your Cisco Spark webhook is up and running",
   "since": "2016-09-23T07:46:52.397Z",
+  "tip": "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html",
   "listeners": [
     "messages/created"
   ],
@@ -34,7 +39,6 @@ $ curl http://localhost:8080 | jq -C
   "account": {},
   "interpreter": {},
   "commands": [],
-  "tip": "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html"
 }
 ```
 
@@ -56,7 +60,7 @@ If present, the library will leverage the token to retreive new message contents
 As messages flow in, the library automatically removes bot mentions when relevant, so that you can focus on the command itself.
 
 ``` bash
-> DEBUG=sparkbot*  SPARK_TOKEN=A_VERY_SECRET_ACCESS_TOKEN node tests/onEvent-messages-created.js
+> DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN node hello-world.js
 ...
   sparkbot webhook instantiated with default configuration +0ms
   sparkbot addMessagesCreatedListener: listener registered +89ms
@@ -159,7 +163,7 @@ Well that said, we're ready to go thru the creation of interactive assistants.
 
 - straight forward way to take action on commands (keywords)
 - option to trim mention if your bot is mentionned in a group room
-- option to specify a fallback command
+- option to specify a fallback command (see helloworld.js quickstart)
 - via an .onCommand() listener function
 - check [onCommand](tests/onCommand.js) sample
 
@@ -180,8 +184,9 @@ The healcheck JSON payload will give you extra details:
 ``` json
 // Example of a JSON healthcheck
 {
-  "message": "Congrats, your Cisco Spark webhook is up and running",
+  "message": "Congrats, your Cisco Spark Bot is up and running",
   "since": "2016-09-01T13:15:39.425Z",
+  "tip": "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html"
   "listeners": [
     "messages/created"
   ],
@@ -205,8 +210,8 @@ The healcheck JSON payload will give you extra details:
   },
   "commands": [
     "help"
-  ],
-  "tip": "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html"
+  ]
+}
 ``` 
 
 
@@ -226,7 +231,7 @@ Here is the set of extra information and behaviors that relate to the automatic 
 
 ### Minimal footprint
 
-The libray makes a minimal use of third party library :
+The framework makes a minimal use of third party library :
 - debug: so that it is easier to embedd as a 3rd party library
 - express & body-parser: as its Web API foundation
 - htmlparser2: used to filter the bot mention in message contents

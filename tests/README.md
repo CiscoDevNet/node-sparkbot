@@ -1,6 +1,6 @@
-# Sparkbot tests
+# Library tests
 
-A set of samples to discover the framework's features : 
+A set of examples to discover the framework's features : 
 
 - [onEvent-all-all](onEvent-all-all.js), [onEvent-messages-created](onEvent-messages-created.js): examples of listeners to specific Webhook (Resources/Event) triggers. Leverages Sparkbot function: webhook.onEvent().
 

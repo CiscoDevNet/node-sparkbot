@@ -25,7 +25,7 @@ var webhookEvents = [ "created", "deleted", "updated"];
  * 		port, 		// int: local port on which the webhook is accessible
  * 		path,  		// string: path to which new webhook POST events are expected
  * 		token,		// string: spark API access token  
- *      trimMention // boolean: filters out mentions of token owner        
+ *      trimMention // boolean: filters out mentions if token owner is a bot   
  * 		ignoreSelf  // boolean: ignores message created by token owner       	
  *  }
  *  
@@ -34,9 +34,9 @@ var webhookEvents = [ "created", "deleted", "updated"];
  * 		port 			: process.env.PORT || 8080,
  * 		path			: process.env.WEBHOOK_URL || "/" ,  
  * 		token			: process.env.SPARK_TOKEN,
- * 		trimMention	 	: true,
+ * 		trimMention	 	: will default to true,
  * 		commandPrefix	: process.env.COMMAND_PREFIX || "/",
- * 		ignoreSelf		: true                   	
+ * 		ignoreSelf		: will default to true if a bot is used, and false otherwise                    	
  *  }
  * 
  */
@@ -50,10 +50,7 @@ function Webhook(config) {
 			port 			: process.env.OVERRIDE_PORT || process.env.PORT || 8080,
 			path			: process.env.WEBHOOK_URL || "/",
 			token			: process.env.SPARK_TOKEN,
-			trimMention	 	: true,
 			commandPrefix 	: process.env.COMMAND_PREFIX || "/" 
-			// The ignoreSelf variable is not initialized, will default to true if a bot is used, and false otherwise 
-			//ignoreSelf		: false
 		};
 	} 
 

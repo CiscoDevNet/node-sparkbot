@@ -23,12 +23,15 @@ function CommandInterpreter(config) {
         return;
     }
     
-    this.trimMention = config.trimMention;
-    this.prefix = config.commandPrefix;
+    // Set defaults 
+    this.trimMention = config.trimMention ? config.trimMention : true;
+    this.prefix = config.commandPrefix ? config.commandPrefix : "";
+    // if not specified, default will be set in detectSparkAccount function 
     if (config.ignoreSelf) {
         this.ignoreSelf = config.ignoreSelf;
     }
     
+    // Let's identify the account type and finalize configuration in there
     this.accountType = "unknown";
 	this.person = null;
     var self = this;

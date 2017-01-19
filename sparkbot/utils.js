@@ -5,6 +5,8 @@
 
 var https = require("https");
 
+var crypto = require("crypto");
+
 var debug = require("debug")("sparkbot:utils");
 var fine = require("debug")("sparkbot:utils:fine");
 
@@ -171,3 +173,23 @@ Utils.readMessage = function(messageId, token, cb) {
     req.end();
 }
 
+// Returns true if the request has been signed with the specified secret
+// see Cisco Spark API to authenticate requests : https://developer.ciscospark.com/webhooks-explained.html#auth
+Utils.checkSignature = function(secret, req) {
+    var signature = req.headers["x-spark-signature"];
+    if (!signature) {
+        fine("header X-Spark-Signature not found");
+        return false;
+    }
+
+    // compute HMAC_SHA1 signature
+    var computed = crypto.createHmac('sha1', secret).update(JSON.stringify(req.body)).digest('hex');
+
+    // check signature
+    if (signature != computed) {
+        fine("signatures do not match");
+        return false;
+    }
+
+	return true;
+}

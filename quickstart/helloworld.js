@@ -15,9 +15,12 @@
 var SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
 
-// Remove comment to overlad command default "/" prefix
+// Remove comment to overload the default prefix "/" for commands
 //bot.interpreter.prefix = "#";
- 
+
+// Remove comment if a secret was specified at webhook registration
+//bot.secret = "VERY_SECRET";
+
 bot.onCommand("fallback", function (command) {
     // so happy to join
     spark.messageSendRoom(command.message.roomId, {

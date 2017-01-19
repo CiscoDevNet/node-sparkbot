@@ -102,6 +102,7 @@ function Webhook(config) {
 				since			: new Date(started).toISOString(),
 				tip				: "Don't forget to create WebHooks to start receiving events from Cisco Spark: https://developer.ciscospark.com/endpoint-webhooks-post.html",
 				listeners		: Object.keys(self.listeners),
+				secret			: (self.secret != null),
 				token			: (self.token != null),
 				account			: {
 					type		: self.interpreter.accountType,
@@ -129,6 +130,16 @@ function Webhook(config) {
 
 			// event is ready to be processed, let's send a response to Spark without waiting any longer
 			res.status(200).json({message: "message received and being processed by webhook"});
+
+			// process HMAC-SHA1 signature if a secret has been specified
+			// [SECURITY] check the secret after responding to Cisco Spark
+			if (self.secret) {
+				if (!Utils.checkSignature(self.secret, req)) {
+					debug("incorrect signature, aborting...");
+					return;
+				}
+				fine("signature correct, continuing...")
+			}
 
 			// process incoming resource/event, see https://developer.ciscospark.com/webhooks-explained.html
 			fire(req.body);	

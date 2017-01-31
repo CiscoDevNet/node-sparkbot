@@ -60,13 +60,13 @@ If present, the library will leverage the token to retreive new message contents
 As messages flow in, the library automatically removes bot mentions when relevant, so that you can focus on the command itself.
 
 ``` bash
-> DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN node hello-world.js
+> DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN node quickstart/hello-world.js
 ...
   sparkbot webhook instantiated with default configuration +0ms
   sparkbot addMessagesCreatedListener: listener registered +89ms
   sparkbot Cisco Spark bot started on port: 8080 +8ms
   sparkbot:interpreter bot account detected, name: CiscoDevNet (bot) +1s
-``` 
+```
 
 
 ## Architecture
@@ -229,13 +229,43 @@ Here is the set of extra information and behaviors that relate to the automatic 
     - a type is attached to your bot instance [HUMAN | MACHINE | OTHER]
 
 
+### Authenticating Requests via payload signature 
+
+To ensure paylods received by your bots come from Cisco Spark, you can supply a secret parameter at Webhook creation.
+Every payload posted to your bot will then contain an extra HTTP header "X-Spark-Signature" containing an HMAC-SHA1 signature of the payload.
+
+Once you've created the webhook for your bot with a secret parameter, 
+you can either specify a SECRET environment variable on the command line or in your code.
+
+Command line example:
+``` bash
+> DEBUG=sparkbot*  SPARK_TOKEN=your_bot_token WEBHOOK_SECRET=your_secret node quickstart/hello-world.js
+...
+```
+
+Code example:
+``` nodejs
+// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+SparkBot = require("../sparkbot/webhook");
+var bot = new SparkBot();
+bot.secret = "not THAT secret"
+...
+```
+
+Note that it is a HIGHLY RECOMMENDED however not mandatory security practice to set up a SECRET. 
+If your bot has been started with a secret, then the processing will abort if the incoming payload signature is not present or do not fit.
+However, the bot framework defines a flag so that you can ignore signature check failures when a SECRET is defined.
+
+
 ### Minimal footprint
 
-The framework makes a minimal use of third party library :
+node-sparkbot makes a minimal use of third party library :
 - debug: so that it is easier to embedd as a 3rd party library
 - express & body-parser: as its Web API foundation
 - htmlparser2: used to filter the bot mention in message contents
 - request: to consume the SPARK API, when looking for message spark account details
+
+Morever, node-sparkbot does not embedd a Cisco Spark SDK, so that you can choose your favorite (ie, among ciscospark, node-sparky or node-sparclient..).
 
 
 ## Contribute

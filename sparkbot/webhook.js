@@ -22,21 +22,25 @@ var webhookEvents = [ "created", "deleted", "updated"];
 /* Creates a Cisco Spark webhook with specified configuration structure: 
  *  
  *  { 
- * 		port, 		// int: local port on which the webhook is accessible
- * 		path,  		// string: path to which new webhook POST events are expected
- * 		token,		// string: spark API access token  
- *      trimMention // boolean: filters out mentions if token owner is a bot   
- * 		ignoreSelf  // boolean: ignores message created by token owner       	
+ * 		port,				// int: local port on which the webhook is accessible
+ * 		path,				// string: path to which new webhook POST events are expected
+ * 		token,				// string: spark API access token
+ * 		secret,				// string: (optional) webhook secret used to sign payloads
+ * 		softSecretCheck,	// boolean: does not aborts payload processing if the payload signature check fails
+ *		trimMention			// boolean: filters out mentions if token owner is a bot
+ * 		ignoreSelf			// boolean: ignores message created by token owner
  *  }
  *  
  * If no configuration is specified, the defaults below apply: 
  *  { 
- * 		port 			: process.env.PORT || 8080,
- * 		path			: process.env.WEBHOOK_URL || "/" ,  
- * 		token			: process.env.SPARK_TOKEN,
- * 		trimMention	 	: will default to true,
- * 		commandPrefix	: process.env.COMMAND_PREFIX || "/",
- * 		ignoreSelf		: will default to true if a bot is used, and false otherwise                    	
+ *		port				: process.env.PORT || 8080,
+ *		path				: process.env.WEBHOOK_PATH || "/" ,
+ *		token				: process.env.SPARK_TOKEN,
+ *		secret				: process.env.WEBHOOK_SECRET,
+ *		softSecretCheck		: will default to false if a secret is defined,
+ *		trimMention			: will default to true,
+ *		commandPrefix		: process.env.COMMAND_PREFIX || "/",
+ *		ignoreSelf			: will default to true if a bot is used, and false otherwise
  *  }
  * 
  */
@@ -47,10 +51,11 @@ function Webhook(config) {
 		config = {
 			// [WORKAROUND] in some container situation (ie, Cisco Shipped), we need to use an OVERRIDE_PORT to force our bot to start and listen to the port defined in the Dockerfile (ie, EXPOSE), 
 			// and not the PORT dynamically assigned by the host or scheduler.
-			port 			: process.env.OVERRIDE_PORT || process.env.PORT || 8080,
-			path			: process.env.WEBHOOK_URL || "/",
+			port 			: process.env.OVERRIDE_PORT || process.env.PORT,
+			path			: process.env.WEBHOOK_PATH,
 			token			: process.env.SPARK_TOKEN,
-			commandPrefix 	: process.env.COMMAND_PREFIX || "/" 
+			secret			: process.env.WEBHOOK_SECRET,
+			commandPrefix 	: process.env.COMMAND_PREFIX || "/"
 		};
 	} 
 
@@ -59,10 +64,14 @@ function Webhook(config) {
 		debug("WARNING: configuration does not prevent for reading from yourself => possible infinite loop, continuing...");
 	}
 	
-	// Abort if mandatory copnfig parameters are not present
-	if (!config.port || !config.path) {
-		debug("bad configuration for webhook, aborting Webhook constructor");
-		return null;
+	// Abort if mandatory config parameters are not present
+	if (!config.port) {
+		fine("no port specified, applying default");
+		config.port = 8080;
+	}
+	if (!config.path) {
+		fine("no path specified, applying default");
+		config.path = "/";
 	}
 
 	// If a Spark token is specified, create a command interpreter
@@ -70,6 +79,19 @@ function Webhook(config) {
 		debug("no Spark access token specified, will not fetch message contents and room titles, nor interpret commands");
 	}
 	this.token = config.token;
+
+	// Apply secret if specified
+	if (config.secret) {
+		this.secret = config.secret;
+		// Defaults to false when a secret is specified
+		if (!config.softSecretCheck) {
+			this.softSecretCheck = false;
+		}
+	}
+	if (config.softSecretCheck) {
+		this.softSecretCheck = config.softSecretCheck;
+	}
+
 
 	// Webhook listeners
 	this.listeners = {};
@@ -101,8 +123,11 @@ function Webhook(config) {
 				message			: "Congrats, your Cisco Spark bot is up and running",
 				since			: new Date(started).toISOString(),
 				tip				: "Don't forget to create WebHooks to start receiving events from Cisco Spark: https://developer.ciscospark.com/endpoint-webhooks-post.html",
-				listeners		: Object.keys(self.listeners),
-				secret			: (self.secret != null),
+				webhook			: {
+					secret			: (self.secret != null),
+					softSecretCheck	: self.softSecretCheck,
+					listeners		: Object.keys(self.listeners),
+				},
 				token			: (self.token != null),
 				account			: {
 					type		: self.interpreter.accountType,
@@ -132,13 +157,18 @@ function Webhook(config) {
 			res.status(200).json({message: "message received and being processed by webhook"});
 
 			// process HMAC-SHA1 signature if a secret has been specified
-			// [SECURITY] check the secret after responding to Cisco Spark
+			// [NOTE@ for security reasons, we check the secret AFTER responding to Cisco Spark
 			if (self.secret) {
 				if (!Utils.checkSignature(self.secret, req)) {
-					debug("incorrect signature, aborting...");
-					return;
+					if (!self.softSecretCheck) {
+						debug("HMAC-SHA1 signature does not match secret, aborting payload processing");
+						return;
+					}
+					else  {
+						fine("HMAC-SHA1 signature does not match secret, continuing....");
+					}
 				}
-				fine("signature correct, continuing...")
+				fine("signature check ok, continuing...")
 			}
 
 			// process incoming resource/event, see https://developer.ciscospark.com/webhooks-explained.html
@@ -255,23 +285,23 @@ Webhook.prototype.decryptMessage = function(trigger, cb) {
 }
 
 
-// Shortcut to be notified only as new messages are posted into Spark rooms against which your Webhook has registered.
+// Utility function to be notified only as new messages are posted into Spark rooms against which your Webhook has registered to.
 // The callback function will directly receive the message contents : combines .on('messages', 'created', ...) and .decryptMessage(...).
-// The listener fails is no 
-// Expected callback function signature (err, trigger, message).
+// Expects a callback function with signature (err, trigger, message).
+// Returns true or false whether registration was successful
 Webhook.prototype.onMessage = function(cb) {
 
 	// check args
 	if (!cb) {
-		debug("no callback function, aborting listener registration...")
-		return;
+		debug("no callback function, aborting callback registration...")
+		return false;
 	}
 
 	// Abort if webhook cannot request Spark for messages details
 	var token = this.token;
 	if (!token) {
-		debug("no Spark token specified, cannot read message details, aborting listener registration...")
-		return;
+		debug("no Spark token specified, will not read message details, aborting callback registration...")
+		return false;
 	}
 
 	addMessagesCreatedListener(this, function(trigger) {
@@ -286,6 +316,8 @@ Webhook.prototype.onMessage = function(cb) {
 			cb(trigger, message);
 		});
 	});
+
+	return true;
 }
 
 
@@ -324,37 +356,37 @@ module.exports = Webhook
 
 function addMessagesCreatedListener(webhook, listener) {
 	webhook.listeners["messages/created"] = listener;
-	debug("addMessagesCreatedListener: listener registered"); 
+	fine("addMessagesCreatedListener: listener registered");
 }
 
 function addMessagesDeletedListener(webhook, listener) {
 	webhook.listeners["messages/deleted"] = listener;
-	debug("addMessagesDeletedListener: listener registered"); 
+	fine("addMessagesDeletedListener: listener registered");
 }
 
 function addRoomsCreatedListener(webhook, listener) {
 	webhook.listeners["rooms/created"] = listener;
-	debug("addRoomsCreatedListener: listener registered"); 
+	fine("addRoomsCreatedListener: listener registered");
 }
 
 function addRoomsUpdatedListener(webhook, listener) {
 	webhook.listeners["rooms/updated"] = listener;
-	debug("addRoomsUpdatedListener: listener registered"); 
+	fine("addRoomsUpdatedListener: listener registered");
 }
 
 function addMembershipsCreatedListener(webhook, listener) {
 	webhook.listeners["memberships/created"] = listener;
-	debug("addMembershipsCreatedListener: listener registered"); 
+	fine("addMembershipsCreatedListener: listener registered");
 }
 
 function addMembershipsUpdatedListener(webhook, listener) {
 	webhook.listeners["memberships/updated"] = listener;
-	debug("addMembershipsUpdatedListener: listener registered"); 
+	fine("addMembershipsUpdatedListener: listener registered");
 }
 
 function addMembershipsDeletedListener(webhook, listener) {
 	webhook.listeners["memberships/deleted"] = listener;
-	debug("addMembershipsDeletedListener: listener registered"); 
+	fine("addMembershipsDeletedListener: listener registered");
 }
 
 

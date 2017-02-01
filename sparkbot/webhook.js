@@ -15,9 +15,12 @@ var fine = require("debug")("sparkbot:fine");
 var Utils = require("./utils");
 var CommandInterpreter = require("./interpreter");
 var CommandRouter = require("./router");
+var Registration = require("./registration");
 
 var webhookResources = [ "memberships", "messages", "rooms"];
 var webhookEvents = [ "created", "deleted", "updated"];
+
+
 
 /* Creates a Cisco Spark webhook with specified configuration structure: 
  *  
@@ -347,6 +350,91 @@ Webhook.prototype.onCommand = function(command, cb) {
 }
 
 
+
+// Creates or updates a webhook to Cisco Spark
+// returns the webhook created or updated
+// see https://developer.ciscospark.com/endpoint-webhooks-post.html for arguments
+Webhook.prototype.createOrUpdateWebhook = function(name, targetUrl, resource, event, filter, secret, cb) {
+	if (!name || !targetUrl) {
+		debug("bad arguments for createOrUpdateWebhook, aborting webhook creation...")
+		if (cb) cb(new Error("bad arguments for createOrUpdateWebhook"), null);
+		return;
+	}
+
+	if (!resource) {
+		resource = "all";
+		event = "all";
+	}
+	if (!event) {
+		event = "all";
+	}
+
+	// Check if webhook exists
+	var token = this.token;
+	Registration.listWebhooks(token, function (err, webhooks) {
+		if (err) {
+			debug("could not retreive webhooks, aborting webhook creation or update...");
+			if (cb) cb(new Error("bad arguments for createOrUpdateWebhook"), null);
+			return;
+		}
+
+		var webhook = null;
+		webhooks.forEach(function(elem) {
+			if (elem.name === name) {
+				webhook = elem;
+			}
+		});
+
+		// if found, check if webhook is different
+		if (webhook) {
+			var identical = compareWebhooks(webhook, name, targetUrl, resource, event, filter, secret);
+			if (identical) {
+				debug("webhook already exists with same properties, no creation needed");
+				if (cb) cb(null, webhook);
+				return;
+			}
+
+			// delete the webhook that pre-exists
+			Registration.deleteWebhook(token, webhook.id, function (err, code) {
+				if (err != null) {
+					debug("could not delete existing webhook")
+					if (cb) cb(new Error('webhook already exists, and could not be updated'), null);
+					return;
+				}
+
+				Registration.createWebhook(token, name, targetUrl, resource, event, filter, secret, function (err, webhook) {
+					if (err != null) {
+						debug("could not create webhook")
+						if (cb) cb(new Error('could NOT create webhook'), null);
+						return;
+					}
+
+					fine("webhook successfully updated");
+					if (cb) cb(null, webhook);
+					return;
+				});
+			});
+		}
+
+		// create Webhook
+		else {
+			Registration.createWebhook(token, name, targetUrl, resource, event, filter, secret, function (err, webhook) {
+				if (err != null) {
+					debug("could not create webhook")
+					if (cb) cb(new Error('could NOT create webhook'), null);
+					return;
+				}
+
+				fine("webhook successfully created");
+				if (cb) cb(null, webhook);
+				return;
+			});
+
+		}
+	});
+}
+
+
 module.exports = Webhook
 
 
@@ -389,7 +477,43 @@ function addMembershipsDeletedListener(webhook, listener) {
 	fine("addMembershipsDeletedListener: listener registered");
 }
 
+// returns true if webhooks are identical
+function compareWebhooks(webhook, name, targetUrl, resource, event, filter, secret) {
+	if ((webhook.name !== name)
+	|| (webhook.targetUrl !== targetUrl)
+	|| (webhook.resource !== resource)
+	|| (webhook.event !== event)) {
+		return false;
+	}
 
+	// they look pretty identifty, let's check optional fields
+	if (filter) {
+		if (filter !== webhook.filter) {
+			fine("webhook look pretty similar BUT filter is different");
+			return false;
+		}
+	}
+	else {
+		if (webhook.filter) {
+			fine("webhook look pretty similar BUT filter is different");
+			return false;
+		}
+	}
+
+	if (secret) {
+		if (secret !== webhook.secret) {
+			fine("webhook look pretty similar BUT secret is different");
+			return false;
+		}
+	}
+	else {
+		if (webhook.secret) {
+			fine("webhook look pretty similar BUT secret is different");
+			return false;
+		}
+	}
+	return true;
+}
 
 
 

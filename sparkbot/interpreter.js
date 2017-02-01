@@ -130,13 +130,19 @@ CommandInterpreter.prototype.extract = function (message) {
     }
 
     // If it is not a command, ignore it
-    if (this.prefix && (this.prefix != text.charAt(0))) {
-        debug("text does not start with the command prefix: " + this.prefix + " => ignoring...");
-        return null;
+    var prefixLength = 0;
+    if (this.prefix) {
+        prefixLength = this.prefix.length;
+
+        // Check if prefix matches
+        if (this.prefix != text.substring(0, prefixLength)) {
+            debug("text does not start with the command prefix: " + this.prefix + " => ignoring...");
+            return null;
+        }
     }
 
     // Extract command
-    var splitted = text.substring(1).split(' ');
+    var splitted = text.substring(prefixLength).split(' ');
     var keyword = splitted[0];
     if (!keyword) {
         debug("empty command, ignoring");

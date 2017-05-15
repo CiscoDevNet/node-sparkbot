@@ -44,6 +44,12 @@ function CommandInterpreter(config) {
 		self.accountType = account;
 		self.person = people;
 
+        // Decode Spark Account id identifier to better trim mentions (see trimMention)
+        var temp = new Buffer(people.id, 'base64');
+        self.person.rawId = temp.toString().substring(23);
+
+        // Infer how Cisco Spark would generate a nick name for the bot,
+        // which is approximate as the nick name would depend on the name of other room members...
         var splitted = people.displayName.split(' ');
 	    self.nickName = splitted[0];
 
@@ -72,6 +78,11 @@ function trimMention(person, message) {
             fine("opening brace name: " + tagname + ", with args: " + JSON.stringify(attribs));
             if (tagname === "spark-mention") {
                 if (attribs["data-object-type"]=="person" && attribs["data-object-id"]== person.id ) {
+                        skip++; // to skip next text as bot was mentionned
+                }
+
+                // [Workaround] for Spark Mac clients, see issue https://github.com/CiscoDevNet/node-sparkbot/issues/1
+                if (attribs["data-object-type"]=="person" && attribs["data-object-id"]== person.rawId ) {
                         skip++; // to skip next text as bot was mentionned
                 }
             }

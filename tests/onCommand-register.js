@@ -29,8 +29,9 @@ var bot = new SparkBot();
 
 // Registration with no filter, but a secret and a callback
 // note that the secret needs to be known to the bot so that it can check the payload signatures
-bot.secret = "not THAT secret";
-bot.createOrUpdateWebhook("register-bot", "https://f6d5d937.ngrok.io", "all", "all", null, bot.secret, function (err, webhook) {
+var publicURL =  process.env.PUBLIC_URL || "https://f6d5d937.ngrok.io";
+bot.secret = process.env.WEBHOOK_SECRET || "not THAT secret";
+bot.createOrUpdateWebhook("register-bot", publicURL, "all", "all", null, bot.secret, function (err, webhook) {
   console.log("webhook successfully created, id: " + webhook.id);
 });
 

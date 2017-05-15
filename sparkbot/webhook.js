@@ -122,9 +122,11 @@ function Webhook(config) {
 	app.route(config.path)
 		.get(function (req, res) {
 			debug("healtch check hitted");
+			var package = require("../package.json");
 			res.json({
 				message			: "Congrats, your Cisco Spark bot is up and running",
 				since			: new Date(started).toISOString(),
+				framework		: package.name + ", " + package.version,
 				tip				: "Don't forget to create WebHooks to start receiving events from Cisco Spark: https://developer.ciscospark.com/endpoint-webhooks-post.html",
 				webhook			: {
 					secret			: (self.secret != null),

@@ -15,7 +15,7 @@ Copy a sample from [Quickstart](https://github.com/CiscoDevNet/node-sparkbot/tre
 
 Then open a bash terminal and type:
 
-``` bash
+```bash
 > npm install
 > DEBUG=sparkbot* node tests/onEvent-all-all.js
 ...
@@ -59,7 +59,7 @@ If present, the library will leverage the token to retreive new message contents
 
 As messages flow in, the library automatically removes bot mentions when relevant, so that you can focus on the command itself.
 
-``` bash
+```bash
 > DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN node quickstart/hello-world.js
 ...
   sparkbot webhook instantiated with default configuration +0ms
@@ -79,7 +79,7 @@ You can register to listen to a WebHook event by calling the function **".on(<re
 
 Note that the library implements a shortcut that lets you listen to all Webhook events. Check sample code [onEvent-all-all.js](tests/onEvent-all-all.js).
 
-``` nodejs
+```javascript
 var SparkBot = require("sparkbot");
 var bot = new SparkBot();
  
@@ -92,7 +92,7 @@ bot.onEvent("all", "all", function(trigger) {
 
 This other example code [onEvent-messages-created.js](tests/onEvent-messages-created.js) illustrates how to listen to (Messages/Created) Webhook events.
 
-``` nodejs
+```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
 var SparkBot = require("sparkbot");
 var bot = new SparkBot();
@@ -122,7 +122,7 @@ As the message is fetched behind the scene, you should position a SPARK_TOKEN en
 
 Check the [onMessage.js](tests/onMessage.js) for an example:
 
-``` nodejs
+```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
 SparkBot = require("../sparkbot/webhook");
 var bot = new SparkBot();
@@ -137,7 +137,7 @@ bot.onMessage(function(trigger, message) {
 Note that most of the time, you'll want to check for the presence of a keyword to take action.
 To that purpose, you can check this example: [onMessage-asCommand](../tests/onMessage-asCommand.js).
 
-``` nodejs
+```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
 var SparkBot = require("../sparkbot/webhook");
 var bot = new SparkBot();
@@ -181,7 +181,7 @@ The healcheck JSON payload will give you extra details:
 - interpreter // preferences for the command interpreter
 
    
-``` json
+```json
 // Example of a JSON healthcheck
 {
   "message": "Congrats, your Cisco Spark Bot is up and running",
@@ -238,13 +238,13 @@ Once you've created the webhook for your bot with a secret parameter,
 you can either specify a SECRET environment variable on the command line or in your code.
 
 Command line example:
-``` bash
+```bash
 > DEBUG=sparkbot*  SPARK_TOKEN=your_bot_token WEBHOOK_SECRET=your_secret node quickstart/hello-world.js
 ...
 ```
 
 Code example:
-``` nodejs
+```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
 SparkBot = require("../sparkbot/webhook");
 var bot = new SparkBot();
@@ -257,15 +257,28 @@ If your bot has been started with a secret, then the processing will abort if th
 However, the bot framework defines a flag so that you can ignore signature check failures when a SECRET is defined.
 
 
+### Auto-Register Webhooks
+
+At startup, node-sparkbot can automatically create a Webhook for your bot, or verify if a webhook already exists with the specified name.
+
+Check [onCommand-register.js](tests/onCommand-register.js) for an example.
+
+```javascript
+bot.createOrUpdateWebhook("register-bot", "https://f6d5d937.ngrok.io", "all", "all", null, bot.secret, function (err, webhook) {
+  console.log("webhook successfully created, id: " + webhook.id);
+});
+```
+
+
 ### Minimal footprint
 
-node-sparkbot makes a minimal use of third party library :
-- debug: so that it is easier to embedd as a 3rd party library
+node-sparkbot makes a minimal use of third party libraries :
+- debug: as we need a customizable logger
 - express & body-parser: as its Web API foundation
-- htmlparser2: used to filter the bot mention in message contents
-- request: to consume the SPARK API, when looking for message spark account details
+- htmlparser2: to filter out the bot mention from the message contents
 
-Morever, node-sparkbot does not embedd a Cisco Spark SDK, so that you can choose your favorite (ie, among ciscospark, node-sparky or node-sparclient..).
+Morever, node-sparkbot does not embedd a Cisco Spark client SDK, 
+so that you can choose your favorite (ie, among ciscospark, node-sparky or node-sparclient...).
 
 
 ## Contribute

@@ -1,28 +1,41 @@
 # node-sparkbot
 
-Yet another opiniated framework to quickly build [Cisco Spark Bots](https://developer.ciscospark.com/bots.html) in nodejs:
+Yet [another opiniated framework](https://github.com/CiscoDevNet/awesome-ciscospark#bot-frameworks) to quickly build [Cisco Spark Bots](https://developer.ciscospark.com/bots.html) in nodejs:
 - with a simple design to help you learn and experiment Spark webhooks concepts in a snatch,
 - and flexible enough to let your bot listen to raw webhook events, or directly respond to commands,  
 - leveraged by a few DevNet learning labs, and bot samples. 
 
 This project focusses on the [framework itself](#architecture) and its [testing companions](./tests/README.md).
-If you're looking for ready-to-run Cisco Spark bots built with the library, jump to the [node-sparkbot-samples](https://github.com/CiscoDevNet/node-sparkbot-samples).
+
+If you're looking for ready-to-run Cisco Spark bots built with the library, jump to the [node-sparkbot-samples repo](https://github.com/CiscoDevNet/node-sparkbot-samples).
 
 
 ## Quickstart
 
-Copy a sample from [Quickstart](https://github.com/CiscoDevNet/node-sparkbot/tree/master/quickstart) or the directory itself.
+Copy a sample from [Quickstart](quickstart/).
 
-Then open a bash terminal and type:
+For **Mac, Linux and bash users**, open a terminal and type:
 
-```bash
-> npm install
-> DEBUG=sparkbot* node tests/onEvent-all-all.js
-...
-sparkbot Cisco Spark Bot started on port: 8080 +2ms
+```shell
+git clone https://github.com/CiscoDevNet/node-sparkbot
+cd node-sparkbot
+npm install
+DEBUG=sparkbot* node tests/onEvent-all-all.js
 ```
 
-Done, your bot is live, let's hit its healthcheck endpoint
+For **Windows users**, open a command shell and type:
+
+```shell
+git clone https://github.com/CiscoDevNet/node-sparkbot
+cd node-sparkbot
+npm install
+set DEBUG=sparkbot*
+node tests/onEvent-all-all.js
+```
+
+**Done, your bot is live**
+
+Let's check it's live by hittinh its healthcheck endpoint:
 
 ```
 # simply run: curl http://localhost:8080 
@@ -42,14 +55,15 @@ $ curl http://localhost:8080 | jq -C
 }
 ```
 
-Your bot is now up and running.
+**Congrats, your bot is now up and running**
+
 Let's have Spark post us events :
 - if your bot is running on a local machine, you need to [expose your bot to the internet](docs/SettingUpYourSparkBot.md#expose-you-bot).
 - and last, [register your bot by creating a Spark Webhook](docs/SettingUpYourSparkBot.md#register-your-bot-as-a-spark-webhook).
 
 Note that if you want your bot to respond to commands, add a Spark API token on the command line (see below).
 
-Finally, we suggest you take a look at the [tests](./tests/README.md) as they provide a great way to discover the framework features.
+Finally, we suggest you take a look at the [tests](tests/README.md) as they provide a great way to discover the framework features.
 
 
 ### Respond to commands
@@ -59,8 +73,9 @@ If present, the library will leverage the token to retreive new message contents
 
 As messages flow in, the library automatically removes bot mentions when relevant, so that you can focus on the command itself.
 
-```bash
-> DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN node quickstart/hello-world.js
+```shell
+DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN   node tests/onCommand.js
+
 ...
   sparkbot webhook instantiated with default configuration +0ms
   sparkbot addMessagesCreatedListener: listener registered +89ms
@@ -124,7 +139,7 @@ Check the [onMessage.js](tests/onMessage.js) for an example:
 
 ```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
-SparkBot = require("../sparkbot/webhook");
+SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
  
 bot.onMessage(function(trigger, message) {
@@ -135,11 +150,11 @@ bot.onMessage(function(trigger, message) {
 ```
 
 Note that most of the time, you'll want to check for the presence of a keyword to take action.
-To that purpose, you can check this example: [onMessage-asCommand](../tests/onMessage-asCommand.js).
+To that purpose, you can check this example: [onMessage-asCommand](tests/onMessage-asCommand.js).
 
 ```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
-var SparkBot = require("../sparkbot/webhook");
+var SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
 
 bot.onMessage(function (trigger, message) {
@@ -153,8 +168,8 @@ bot.onMessage(function (trigger, message) {
 });
 ```
 
-__Note that The onCommand function below is pretty powerful, as it not only checks for command keywords, but also removes any mention of your bot, as this mention is a Spark pre-requisite for your bot to receive a message in a group room,
-but it meaningless for your bot to process the message.__
+_Note that The onCommand function below is pretty powerful, as it not only checks for command keywords, but also removes any mention of your bot, as this mention is a Spark pre-requisite for your bot to receive a message in a group room,
+but it meaningless for your bot to process the message._
 
 Well that said, we're ready to go thru the creation of interactive assistants.
 
@@ -163,7 +178,7 @@ Well that said, we're ready to go thru the creation of interactive assistants.
 
 - respond to commands (keywords) via an .onCommand() listener function
 - option to trim mention if your bot is mentionned in a group room
-- option to specify a fallback command (see helloworld.js quickstart)
+- option to specify a fallback command
 - check [onCommand](tests/onCommand.js) sample
 
 
@@ -220,7 +235,7 @@ If a Cisco Spark API access token has been specified at launch, the library will
 From the person details provided, the library will infer if the token matches a individual (HUMAN) or a bot account (MACHINE).
 Because of restrictions concerning bots, the library will setup a default behavior from the account type, unless configuration parameters have already been provided at startup.
 
-__Note that the automatic account detection procedure is done asynchronously at launch.__
+_Note that the automatic account detection procedure is done asynchronously at launch._
 
 Here is the set of extra information and behaviors that relate to the automatic bot detection:
     - your bot is populated with an account property
@@ -237,15 +252,15 @@ Once you've created the webhook for your bot with a secret parameter,
 you can either specify a SECRET environment variable on the command line or in your code.
 
 Command line example:
-```bash
-> DEBUG=sparkbot*  SPARK_TOKEN=your_bot_token WEBHOOK_SECRET=your_secret node quickstart/hello-world.js
+```shell
+DEBUG=sparkbot*  SPARK_TOKEN=your_bot_token WEBHOOK_SECRET=your_secret   node tests/onEvent-check-secret.js
 ...
 ```
 
 Code example:
 ```javascript
 // Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
-SparkBot = require("../sparkbot/webhook");
+SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
 bot.secret = "not THAT secret"
 ...
@@ -282,7 +297,7 @@ so that you can choose your favorite (ie, among ciscospark, node-sparky or node-
 
 ## Contribute
 
-Feedback, issues, thoughts... please use github issues.
+Feedback, issues, thoughts... please use [github issues](https://github.com/CiscoDevNet/node-sparkbot/issues/new).
 
 Interested in contributing code?
 - Check for open issues or create a new one.

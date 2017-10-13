@@ -371,12 +371,12 @@ Webhook.prototype.createOrUpdateWebhook = function(name, targetUrl, resource, ev
 		event = "all";
 	}
 
-	// Check if webhook exists
+	// Check if a webhook already exists with the same name
 	var token = this.token;
 	Registration.listWebhooks(token, function (err, webhooks) {
 		if (err) {
 			debug("could not retreive webhooks, aborting webhook creation or update...");
-			if (cb) cb(new Error("bad arguments for createOrUpdateWebhook"), null);
+			if (cb) cb(new Error("could not retreive the list webhooks, check your spark token"), null);
 			return;
 		}
 
@@ -400,7 +400,7 @@ Webhook.prototype.createOrUpdateWebhook = function(name, targetUrl, resource, ev
 			Registration.deleteWebhook(token, webhook.id, function (err, code) {
 				if (err != null) {
 					debug("could not delete existing webhook")
-					if (cb) cb(new Error('webhook already exists, and could not be updated'), null);
+					if (cb) cb(new Error('webhook with same name already exists and could not be updated'), null);
 					return;
 				}
 
@@ -431,7 +431,6 @@ Webhook.prototype.createOrUpdateWebhook = function(name, targetUrl, resource, ev
 				if (cb) cb(null, webhook);
 				return;
 			});
-
 		}
 	});
 }

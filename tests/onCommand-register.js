@@ -32,7 +32,14 @@ var bot = new SparkBot();
 var publicURL =  process.env.PUBLIC_URL || "https://f6d5d937.ngrok.io";
 bot.secret = process.env.WEBHOOK_SECRET || "not THAT secret";
 bot.createOrUpdateWebhook("register-bot", publicURL, "all", "all", null, bot.secret, function (err, webhook) {
-  console.log("webhook successfully created, id: " + webhook.id);
+  if (err) {
+    console.error("could not create Webhook, err: " + err);
+
+    // Fail fast
+    process.exit(1);
+  }
+
+  console.log("webhook successfully checked, with id: " + webhook.id);
 });
 
 // Registration with no filter, but a secret and a callback

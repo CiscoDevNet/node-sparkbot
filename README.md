@@ -161,10 +161,9 @@ Well that said, we're ready to go thru the creation of interactive assistants.
 
 ### Interactive assistants
 
-- straight forward way to take action on commands (keywords)
+- respond to commands (keywords) via an .onCommand() listener function
 - option to trim mention if your bot is mentionned in a group room
 - option to specify a fallback command (see helloworld.js quickstart)
-- via an .onCommand() listener function
 - check [onCommand](tests/onCommand.js) sample
 
 

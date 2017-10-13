@@ -23,12 +23,18 @@ function CommandInterpreter(config) {
         return;
     }
     
-    // Set defaults 
-    this.trimMention = config.trimMention ? config.trimMention : true;
+    // A bot should ignore its own messages by default
+    // Only case when this would be set to true is for a developer to test a bot with its personal developer token
+    if (typeof this.ignoreSelf != "boolean") {
+        this.ignoreSelf = true;
+    }
+
+    // No prefix to commands by default
     this.prefix = config.commandPrefix ? config.commandPrefix : "";
-    // if not specified, default will be set in detectSparkAccount function 
-    if (config.ignoreSelf) {
-        this.ignoreSelf = config.ignoreSelf;
+
+    // Bot Mentions should be trimmed by default
+    if (typeof this.trimMention != "boolean") {
+        this.trimMention = true;
     }
     
     // Let's identify the account type and finalize configuration in there
@@ -52,16 +58,6 @@ function CommandInterpreter(config) {
         // which is approximate as the nick name would depend on the name of other room members...
         var splitted = people.displayName.split(' ');
 	    self.nickName = splitted[0];
-
-        // If ignoreSelf is not explicitely set, let's initialize it 
-        if (!self.ignoreSelf) {
-            if (self.accountType == "machine") {
-                self.ignoreSelf = true;
-            }
-            else {
-                self.ignoreSelf = false;
-            }
-        }
 	});
 
 }
@@ -70,6 +66,12 @@ function CommandInterpreter(config) {
 // Return a string in which webhook mentions are removed
 // Note : we need to start from the HTML text as it only includes mentions for sure. In practice, the plain text message may include a nickname 
 function trimMention(person, message) {
+
+    // If the message does not contain HTML, no need parsing it for Mentions
+    if (!message.html) {
+        return message.text;
+    }
+
     var buffer = "";
     var skip = 0;
     var group = 0;      
@@ -123,20 +125,27 @@ CommandInterpreter.prototype.extract = function (message) {
         return null;
     }
 
-    // Remove mention if we are running a bot account and part of a group room
+    
+    // If the message does not contain any text, simply ignore it
+    // GTK: happens in case of a pure file attachement for example
     var text = message.text;
-    if  ((message.roomType == "group") && (this.accountType == "machine") && this.trimMention) {
-        debug("removing bot mention if present in: " + text);
-        text = trimMention(this.person, message);
+    if (!text) {
+        debug("no text in message => ignoring");
+        return null;
+    }
+
+    // Remove mention if in a group room
+    if  ((message.roomType == "group") && this.trimMention) {
+        if (message.mentionedPeople && (message.mentionedPeople.length > 0)) {
+            fine("removing bot mentions if present in: " + text);
+            text = trimMention(this.person, message);
+        }
     }
 
     // Remove extra whitespaces
     text = text.replace( /\s\s+/g, " ");
-
-    // If the message does not contain any text, simply ignore it
-    // GTK: happens in case of a pure file attachement for example
     if (!text) {
-        debug("no text in message => ignoring");
+        debug("no text in message after trimming => ignoring");
         return null;
     }
 

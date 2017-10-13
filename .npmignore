@@ -8,8 +8,5 @@ node_modules/
 npm-debug.log
 
 # Library documentation & tests
-tests/
 docs/
-
-
-
+tests/

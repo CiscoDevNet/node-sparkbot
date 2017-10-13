@@ -1,6 +1,6 @@
 {
   "name": "node-sparkbot",
-  "version": "v0.11.0",
+  "version": "v0.11.1",
   "description": "experiment Cisco Spark Webhook and build Spark Bots in nodejs",
   "main": "index.js",
   "keywords": [

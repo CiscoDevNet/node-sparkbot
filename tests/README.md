@@ -10,6 +10,8 @@ A set of examples to discover the framework's features :
 
 - [onCommand](onCommand.js): shortcut to listen to a specific command. Leverages Sparkbot function: webhook.onCommand().
 
+- [onCommand-webhook](onCommand-webhook.js): example of an automated creation of a webhook.
+
 
 You may also check [express-spark-webhook](express-spark-webhook.js) which illustrates how to create a bot without any library :
 
@@ -25,15 +27,16 @@ Note that the SPARK_TOKEN env variable is required to run all samples that read 
 Once your bot is started, read this [guide to expose it publically and create a Cisco Spark webhook](../docs/SettingUpYourSparkBot.md).
 
 
-``` bash
+```shell
 # Installation
-> git clone https://github.com/CiscoDevNet/node-sparkbot
-> cd node-sparkbot
-> npm install
+git clone https://github.com/CiscoDevNet/node-sparkbot
+cd node-sparkbot
+npm install
 
 # Run
-> cd tests
-> DEBUG=sparkbot* SPARK_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX node onCommand.js
+cd tests
+DEBUG=sparkbot* SPARK_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX node onCommand.js
+...
 Cisco Spark Bot started at http://localhost:8080/
    GET  / for Healthcheck
    POST / to receive Webhook events

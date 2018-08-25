@@ -13,7 +13,7 @@ var fine = require("debug")("sparkbot:interpreter:fine");
 
 var sparkAccounts = ["machine", "human", "unknown"];
 
-/* Helper library to interpret Spark commands as they flow in
+/* Helper library to interpret commands as they flow in
  * Please invoke with a valid Webhook configuration
  */
 function CommandInterpreter(config) {
@@ -41,7 +41,7 @@ function CommandInterpreter(config) {
     this.accountType = "unknown";
 	this.person = null;
     var self = this;
-	detectSparkAccount(this.token, function(err, account, people) {
+	detectAccount(this.token, function(err, account, people) {
         if (err) {
             debug("could not retreive account type, err: " + err + ", continuing...");
             return;
@@ -50,11 +50,11 @@ function CommandInterpreter(config) {
 		self.accountType = account;
 		self.person = people;
 
-        // Decode Spark Account id identifier to better trim mentions (see trimMention)
+        // Decode account id identifier to better trim mentions (see trimMention)
         var temp = new Buffer(people.id, 'base64');
         self.person.rawId = temp.toString().substring(23);
 
-        // Infer how Cisco Spark would generate a nick name for the bot,
+        // Infer how Webex would generate a nickname for the bot,
         // which is approximate as the nick name would depend on the name of other room members...
         var splitted = people.displayName.split(' ');
 	    self.nickName = splitted[0];
@@ -83,7 +83,7 @@ function trimMention(person, message) {
                         skip++; // to skip next text as bot was mentionned
                 }
 
-                // [Workaround] for Spark Mac clients, see issue https://github.com/CiscoDevNet/node-sparkbot/issues/1
+                // [Workaround] for Mac clients, see issue https://github.com/CiscoDevNet/node-sparkbot/issues/1
                 if (attribs["data-object-type"]=="person" && attribs["data-object-id"]== person.rawId ) {
                         skip++; // to skip next text as bot was mentionned
                 }
@@ -177,14 +177,14 @@ CommandInterpreter.prototype.extract = function (message) {
 
 
 
-// Detects account type by invoking the Spark People ressource
+// Detects account type by invoking the Webex Teams People ressource
 //    - HUMAN if the token corresponds to a bot account, 
 //    - BOT otherwise
 //
 // cb function signature should be (err, type, account) where type: HUMAN|BOT, account: People JSON structure
 //
-function detectSparkAccount(token, cb) {
-	//console.log("checking Spark account");
+function detectAccount(token, cb) {
+	//console.log("checking account");
 	var options = {
 						'method': 'GET',
 						'hostname': 'api.ciscospark.com',
@@ -202,12 +202,12 @@ function detectSparkAccount(token, cb) {
                     break; // we're good, let's proceed
             
                 case 401:
-                    debug("Spark authentication failed: 401, bad token");
+                    debug("Webex Teams authentication failed: 401, bad token");
                     cb(new Error("response status: " + response.statusCode + ", bad token"), null, null);
                     return;
 
                 default: 
-                    debug("could not retreive Spark account, status code: " + response.statusCode);
+                    debug("could not retreive Webex Teams account, status code: " + response.statusCode);
                     cb(new Error("response status: " + response.statusCode), null, null);
                     return;
             }
@@ -215,26 +215,27 @@ function detectSparkAccount(token, cb) {
 			// Robustify
 			var payload = JSON.parse(Buffer.concat(chunks));
 			if (!payload.emails) {
-                debug("could not retreive Spark account, unexpected payload");
+                debug("could not retreive Webex Teams account, unexpected payload");
 				cb(new Error("unexpected payload: not json"), null, null);
                 return;
 			}
 			var email = payload.emails[0];
 			if (!email) {
-                debug("could not retreive Spark account, unexpected payload: no email");
+                debug("could not retreive Webex Teams account, unexpected payload: no email");
 				cb(new Error("unexpected payload: no email"), null, null);
                 return;
 			}
 
-			// Check if email corresponds to a spark bot
+			// Check if email corresponds to a bot
 			var splitted = email.split("@");
 			if (!splitted || (splitted.length != 2)) {
                 debug("could not retreive Spark account, malformed email");
 				cb(new Error("unexpected payload: malformed email"), null, null);
                 return;
 			}
-			var domain = splitted[1];
-			if ('sparkbot.io' == domain) {
+            var domain = splitted[1];
+            // [COMPATIBILITY] Keeping sparkbot.io for backward compatibility
+			if (('webex.bot' === domain) || ('sparkbot.io' === domain)) {
 				debug("bot account detected, name: " + payload.displayName);
 				cb(null, "machine", payload);
                 return;	
@@ -245,8 +246,8 @@ function detectSparkAccount(token, cb) {
 		});
 	});
 	req.on('error', function(err) {
-		debug("cannot find a Spark account for token, error: " + err);
-		cb(new Error("cannot find Spark account for token"), null, null);
+		debug("cannot find a Webex Teams account for specified token, error: " + err);
+		cb(new Error("cannot find Webex Teams account for specified token"), null, null);
 	});
 	req.end();
 }

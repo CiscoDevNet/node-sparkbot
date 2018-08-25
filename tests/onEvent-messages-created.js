@@ -4,15 +4,15 @@
 //
 
 /* 
- * a Cisco Spark webhook that leverages a simple library (batteries included)
+ * a Webex Teams webhook that leverages a simple library (batteries included)
  * 
- * note : this example requires that you've set a SPARK_TOKEN env variable 
+ * note : this example requires that you've set an ACCESS_TOKEN env variable 
  *  
  */
 
 var SparkBot = require("../sparkbot/webhook");
 
-// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 var bot = new SparkBot();
 
 bot.onEvent("messages", "created", function(trigger) {

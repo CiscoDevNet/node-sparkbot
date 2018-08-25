@@ -13,7 +13,7 @@ var Registration = {};
 module.exports = Registration;
 
 
-// Create a WebHook, see https://developer.ciscospark.com/endpoint-webhooks-post.html for specs
+// Create a WebHook, see https://developer.webex.com/endpoint-webhooks-post.html for specs
 //
 // cb function signature should be (err, webhook)
 //
@@ -52,7 +52,7 @@ Registration.createWebhook = function (token, name, targetUrl, resource, event, 
                     break; // we're good, let's proceed
             
                 case 401:
-                    debug("Spark authentication failed: 401, bad token");
+                    debug("Webex authentication failed: 401, bad token");
                     if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
                     return;
 
@@ -108,7 +108,7 @@ Registration.deleteWebhook = function (token, webhookId, cb) {
                     break; // we're good, let's proceed
             
                 case 401:
-                    debug("Spark authentication failed: 401, bad token");
+                    debug("Webex authentication failed: 401, bad token");
                     if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
                     return;
 
@@ -159,7 +159,7 @@ Registration.listWebhooks = function (token, cb) {
                     break; // we're good, let's proceed
             
                 case 401:
-                    debug("Spark authentication failed: 401, bad token");
+                    debug("Webex authentication failed: 401, bad token");
 					if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
                     return;
 

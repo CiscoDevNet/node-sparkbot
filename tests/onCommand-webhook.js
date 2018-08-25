@@ -4,18 +4,18 @@
 //
 
 /* 
- * a Cisco Spark webhook that leverages a simple library (batteries included)
+ * a Webex Teams webhook that leverages a simple library (batteries included)
  * 
- * note : this example requires that you've set a SPARK_TOKEN env variable 
+ * note : this example requires that you've set an ACCESS_TOKEN env variable 
  *  
  */
 
 var SparkBot = require("../sparkbot/webhook");
 
-// Starts your Webhook with default configuration where the Cisco Spark API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 var bot = new SparkBot();
 
-// Registers the bot to the Cisco Spark Service to start receiving notifications
+// Registers the bot to the Webex Teams Service to start receiving notifications
 // We list here various options to register your bot: pick one and update the code with your bot name and its public endpoint
 
 // Simplissime registration where defaults apply (all, all, no filter, no secret), and no callback
@@ -49,10 +49,10 @@ bot.createOrUpdateWebhook("register-bot", publicURL, "all", "all", null, bot.sec
 //  - WEBHOOK_SECRET="not THAT secret"
 //  - PUBLIC_URL="https://f6d5d937.ngrok.io"
 // example:
-//  DEBUG=sparkbot* BOT_NAME="register-bot" PUBLIC_URL="https://f6d5d937.ngrok.io" WEBHOOK_SECRET="not THAT secret" SPARK_TOKEN="MjdkYjRhNGItM2E1ZS00YmZjLTk2ZmQtO" node tests/onCommand-register.js
+//  DEBUG=sparkbot* BOT_NAME="register-bot" PUBLIC_URL="https://f6d5d937.ngrok.io" WEBHOOK_SECRET="not THAT secret" ACCESS_TOKEN="MjdkYjRhNGItM2E1ZS00YmZjLTk2ZmQtO" node tests/onCommand-register.js
 //bot.createOrUpdateWebhook(process.env.BOT_NAME, process.env.PUBLIC_URL, "all", "all", null, bot.secret, function (err, webhook) {
 //  if (err) {
-//    console.log("Could not register the bot, please check your env variables are all set: SPARK_TOKEN, BOT_NAME, PUBLIC_URL");
+//    console.log("Could not register the bot, please check your env variables are all set: ACCESS_TOKEN, BOT_NAME, PUBLIC_URL");
 //    return;
 //  }
 //  console.log("webhook successfully created, id: " + webhook.id);

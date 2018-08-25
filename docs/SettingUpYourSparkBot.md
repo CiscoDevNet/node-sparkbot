@@ -1,6 +1,6 @@
-# How to setup your Spark Bot
+# How to setup your Webex Teams bot
 
-This guide details how to have your local bot (ie, running on a dev machine or a private network), talk to the Spark Cloud platform.
+This guide details how to have your local bot (ie, running on a dev machine or a private network), talk to the Webex cloud platform.
 
 1. Start you bot
 2. Check your bot is healthy 
@@ -27,9 +27,9 @@ Here are the steps to install this project samples and run them
 # Run an example
 > DEBUG=sparkbot*,samples* node tests/onEvent-all-all.js
 ...
-Cisco Spark Bot started at http://localhost:8080/
-   GET  / for Health checks
-   POST / receives Spark Webhook events
+bot started at http://localhost:8080/
+   GET  / for health checks
+   POST / receives Webex webhook events
 ```
 
 ## Check your bot is healthy
@@ -42,7 +42,7 @@ You should get back an JSON payload with your bot properties.
 > curl http://localhost:8080
 ...
 {
-  "message": "Congrats, your Cisco Spark webhook is up and running",
+  "message": "Congrats, your webhook is up and running",
   "since": "2016-09-01T13:15:39.425Z",
   "listeners": [
     ...
@@ -102,18 +102,18 @@ your url is: http://<yourbot>.localtunnel.me
 ```
 
 
-## Register your bot as a Spark WebHook
+## Register your bot with a WebHook
 
-Last step, is to create a Spark Webhook for your bot.
+Last step, is to create a Webex Teams Webhook for your bot.
 
-This can be done via the Cisco Spark Developer Portal / [Create a WebHook](https://developer.ciscospark.com/endpoint-webhooks-post.html) interactive documentation,
+This can be done via the Webex  Developer Portal / [Create a WebHook](https://developer.webex.com/endpoint-webhooks-post.html) interactive documentation,
 but also via Postman or a CURL command as will see right after.
 
 ### via the interactive documentation
 
 For the scope of this example, we'll associate our bot to all resources and events.
 
-Note: even if our webhook can process all events, you can register a webhook with a more limited set of events. Then Spark will then invoke your webhook only if those events happen (whatever your bot can process).
+Note: even if our webhook can process all events, you can register a webhook with a more limited set of events. Then Webex will then invoke your webhook only if those events happen (whatever your bot can process).
 
 ![](img/spark4devs-create-webhook-all-all.png)
 
@@ -123,8 +123,8 @@ Note: even if our webhook can process all events, you can register a webhook wit
 As an alternative, you can run this CURL command.
 
 ``` bash
-> curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer YOUR_SPARK_TOKEN" -d '{
-        "name": "Sparkbot Samples",
+> curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer YOUR_BOT_TOKEN" -d '{
+        "name": "Bot Sample",
         "resource": "all",
         "event": "all",
         "targetUrl": "https://yourbot.localtunnel.me/"
@@ -137,5 +137,3 @@ As an alternative, you can run this CURL command.
 Or you can also create this webhook via Postman.
 
 ![](img/postman-create-webhook-all-all.png)
-
-

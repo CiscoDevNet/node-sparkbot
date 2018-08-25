@@ -1,11 +1,11 @@
 {
   "name": "node-sparkbot",
-  "version": "v0.12.0",
-  "description": "experiment Cisco Spark Webhook and build Spark Bots in nodejs",
+  "version": "v1.0.0",
+  "description": "Experiment Webex Teams Webhook and build Chatbots in Node.js",
   "main": "index.js",
   "keywords": [
     "SparkBot",
-    "CiscoSpark",
+    "WebexTeams",
     "Webhook",
     "NodeJS",
     "Express"

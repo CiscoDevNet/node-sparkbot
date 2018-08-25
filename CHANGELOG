@@ -1,0 +1,8 @@
+
+v1.0 - Webex Teams rebrand
+- Addd support for 'webex.bot' domain
+- Added support for ACCESS_TOKEN
+- SPARK_TOKEN deprecated, but still supported
+- Documentation updates (removed Spark mentions)
+
+v0.12 - Legacy Cisco Spark release

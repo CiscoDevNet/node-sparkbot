@@ -22,12 +22,12 @@ var webhookEvents = [ "created", "deleted", "updated"];
 
 
 
-/* Creates a Cisco Spark webhook with specified configuration structure: 
+/* Creates a Webex Teams webhook with specified configuration structure: 
  *  
  *  { 
  * 		port,				// int: local port on which the webhook is accessible
  * 		path,				// string: path to which new webhook POST events are expected
- * 		token,				// string: spark API access token
+ * 		token,				// string: Webex Teams API access token
  * 		secret,				// string: (optional) webhook secret used to sign payloads
  * 		softSecretCheck,	// boolean: does not aborts payload processing if the payload signature check fails
  *		trimMention			// boolean: filters out mentions if token owner is a bot
@@ -38,7 +38,7 @@ var webhookEvents = [ "created", "deleted", "updated"];
  *  { 
  *		port				: process.env.PORT || 8080,
  *		path				: process.env.WEBHOOK_PATH || "/" ,
- *		token				: process.env.SPARK_TOKEN,
+ *		token				: process.env.ACCESS_TOKEN,
  *		secret				: process.env.WEBHOOK_SECRET,
  *		softSecretCheck		: will default to false if a secret is defined,
  *		trimMention			: will default to true,
@@ -56,7 +56,8 @@ function Webhook(config) {
 			// and not the PORT dynamically assigned by the host or scheduler.
 			port 			: process.env.OVERRIDE_PORT || process.env.PORT,
 			path			: process.env.WEBHOOK_PATH,
-			token			: process.env.SPARK_TOKEN,
+			// [COMPAT] SPARK_TOKEN deprecated but still supported
+			token			: process.env.ACCESS_TOKEN || process.env.SPARK_TOKEN,
 			secret			: process.env.WEBHOOK_SECRET,
 			commandPrefix 	: process.env.COMMAND_PREFIX || "/"
 		};
@@ -77,9 +78,9 @@ function Webhook(config) {
 		config.path = "/";
 	}
 
-	// If a Spark token is specified, create a command interpreter
+	// If an access token is specified, create a command interpreter
 	if (!config.token) {
-		debug("no Spark access token specified, will not fetch message contents and room titles, nor interpret commands");
+		debug("no access token specified, will not fetch message contents and room titles, nor interpret commands");
 	}
 	this.token = config.token;
 
@@ -124,10 +125,10 @@ function Webhook(config) {
 			debug("healtch check hitted");
 			var package = require("../package.json");
 			res.json({
-				message			: "Congrats, your Cisco Spark bot is up and running",
+				message			: "Congrats, your bot is up and running",
 				since			: new Date(started).toISOString(),
 				framework		: package.name + ", " + package.version,
-				tip				: "Don't forget to create WebHooks to start receiving events from Cisco Spark: https://developer.ciscospark.com/endpoint-webhooks-post.html",
+				tip				: "Don't forget to create WebHooks to start receiving events from Webex: https://developer.webex.com/endpoint-webhooks-post.html",
 				webhook			: {
 					secret			: (self.secret != null),
 					softSecretCheck	: self.softSecretCheck,
@@ -150,19 +151,19 @@ function Webhook(config) {
 		.post(function (req, res) {
 			debug("webhook invoked");
 			
-			// analyse incoming payload, should conform to Spark webhook trigger specifications
+			// analyse incoming payload, should conform to Webex Teams webhook specifications
         	if (!req.body || !Utils.checkWebhookEvent(req.body)) {
 				debug("unexpected payload POSTed, aborting...");
 				res.status(400).json({message: "Bad payload for Webhook",
-										details: "either the bot is misconfigured or Cisco Spark is running a new API version"});
+										details: "either the bot is misconfigured or Webex is running a new API version"});
 				return;
 			}
 
-			// event is ready to be processed, let's send a response to Spark without waiting any longer
+			// event is ready to be processed, let's send a response to Webex without waiting any longer
 			res.status(200).json({message: "message received and being processed by webhook"});
 
 			// process HMAC-SHA1 signature if a secret has been specified
-			// [NOTE@ for security reasons, we check the secret AFTER responding to Cisco Spark
+			// [NOTE@ for security reasons, we check the secret AFTER responding to Webex
 			if (self.secret) {
 				if (!Utils.checkSignature(self.secret, req)) {
 					if (!self.softSecretCheck) {
@@ -176,13 +177,13 @@ function Webhook(config) {
 				fine("signature check ok, continuing...")
 			}
 
-			// process incoming resource/event, see https://developer.ciscospark.com/webhooks-explained.html
+			// process incoming resource/event, see https://developer.webex.com/webhooks-explained.html
 			fire(req.body);	
 		});
 	
 	// Start bot
 	app.listen(config.port, function () {
-		debug("Cisco Spark bot started on port: " + config.port);
+		debug("bot started on port: " + config.port);
 	});
 }
 
@@ -193,7 +194,7 @@ Webhook.prototype.onEvent = function(resource, event, listener) {
 		debug("on: listener registration error. Please specify a listener for resource/event");
 		return;
 	}
-	// check (resource, event) conforms to Spark webhook specifications, see https://developer.ciscospark.com/webhooks-explained.html 
+	// check (resource, event) conforms to Webhook specifications, see https://developer.webex.com/webhooks-explained.html 
 	if (!resource || !event) {
 		debug("on: listener registration error. please specify a resource/event for listener");
 		return;
@@ -273,7 +274,7 @@ Webhook.prototype.onEvent = function(resource, event, listener) {
 			break;
 	}	
 
-	debug("on: listener registration error, bad configuration. Resource: '" + resource + "' and event: '" + event + "' do not comply with Spark webhook specifications.");
+	debug("on: listener registration error, bad configuration. Resource: '" + resource + "' and event: '" + event + "' do not comply with Webex Teams webhook specifications.");
 }
 
 
@@ -281,8 +282,8 @@ Webhook.prototype.onEvent = function(resource, event, listener) {
 // Expected callback function signature (err, message).
 Webhook.prototype.decryptMessage = function(trigger, cb) {
 	if (!this.token) {
-		debug("no Spark token configured, cannot read message details.")
-		cb(new Error("no Spark token configured, cannot decrypt message"), null);
+		debug("no access token configured, cannot read message details.")
+		cb(new Error("no access token configured, cannot decrypt message"), null);
 		return;
 	}
 
@@ -290,7 +291,7 @@ Webhook.prototype.decryptMessage = function(trigger, cb) {
 }
 
 
-// Utility function to be notified only as new messages are posted into Spark rooms against which your Webhook has registered to.
+// Utility function to be notified only as new messages are posted into spaces against which your Webhook has registered to.
 // The callback function will directly receive the message contents : combines .on('messages', 'created', ...) and .decryptMessage(...).
 // Expects a callback function with signature (err, trigger, message).
 // Returns true or false whether registration was successful
@@ -302,10 +303,10 @@ Webhook.prototype.onMessage = function(cb) {
 		return false;
 	}
 
-	// Abort if webhook cannot request Spark for messages details
+	// Abort if webhook cannot request Webex for messages details
 	var token = this.token;
 	if (!token) {
-		debug("no Spark token specified, will not read message details, aborting callback registration...")
+		debug("no access token specified, will not read message details, aborting callback registration...")
 		return false;
 	}
 
@@ -338,7 +339,7 @@ Webhook.prototype.asCommand = function(message) {
 
 
 
-// Shortcut to be notified only as new commands are posted into Spark rooms your Webhook has registered against.
+// Shortcut to be notified only as new commands are posted into spaces your Webhook has registered against.
 // The callback function will directly receive the message contents : combines .on('messages', 'created', ...)  .decryptMessage(...) and .extractCommand(...).
 // The expected callback function signature is: function(err, command).
 // Note that you may register a "fallback" listener by registering the "fallback" command
@@ -353,9 +354,9 @@ Webhook.prototype.onCommand = function(command, cb) {
 
 
 
-// Creates or updates a webhook to Cisco Spark
+// Creates or updates a webhook to Webex
 // returns the webhook created or updated
-// see https://developer.ciscospark.com/endpoint-webhooks-post.html for arguments
+// see https://developer.webex.com/endpoint-webhooks-post.html for arguments
 Webhook.prototype.createOrUpdateWebhook = function(name, targetUrl, resource, event, filter, secret, cb) {
 	if (!name || !targetUrl) {
 		debug("bad arguments for createOrUpdateWebhook, aborting webhook creation...")
@@ -376,7 +377,7 @@ Webhook.prototype.createOrUpdateWebhook = function(name, targetUrl, resource, ev
 	Registration.listWebhooks(token, function (err, webhooks) {
 		if (err) {
 			debug("could not retreive webhooks, aborting webhook creation or update...");
-			if (cb) cb(new Error("could not retreive the list webhooks, check your spark token"), null);
+			if (cb) cb(new Error("could not retreive the list of webhooks, check your token"), null);
 			return;
 		}
 

@@ -5,7 +5,7 @@
 
 var SparkBot = require("../sparkbot/webhook");
 
-// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 var bot = new SparkBot();
 
 var registration = require("../sparkbot/registration.js");

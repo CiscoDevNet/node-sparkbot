@@ -4,7 +4,7 @@
 //
 
 /* 
- * a Cisco Spark webhook that leverages a simple library (batteries included)
+ * a Webex Teams webhook that leverages a simple library (batteries included)
  *
  */
 

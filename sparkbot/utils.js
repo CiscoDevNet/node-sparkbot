@@ -14,8 +14,8 @@ var Utils = {};
 module.exports = Utils;
 
 
-// Returns true if specified JSON data complies with the Spark Webhook documentation
-// see https://developer.ciscospark.com/webhooks-explained.html 
+// Returns true if specified JSON data complies with the Webhook documentation
+// see https://developer.webex.com/webhooks-explained.html 
 //
 //   {
 //     "id":"Y2lzY29zcGFyazovL3VzL1dFQkhPT0svZjRlNjA1NjAtNjYwMi00ZmIwLWEyNWEtOTQ5ODgxNjA5NDk3",         // webhook id
@@ -25,7 +25,7 @@ module.exports = Utils;
 //     "filter":"roomId=Y2lzY29zcGFyazovL3VzL1JPT00vY2RlMWRkNDAtMmYwZC0xMWU1LWJhOWMtN2I2NTU2ZDIyMDdi",  // optional, as specified at creation
 //     "resource":"messages",                                                                           // actual resource that triggered the webhook (different from specified at creation if 'all' was specified)
 //     "event":"created",                                                                               // actual event that triggered the webhook (different from specified at creation if 'all' was specified)
-//     "actorId":"Y2lzY29zcGFyazovL3VzL1dFQkhPT0svZjRlNjA1NjAtNjYwMi353454123E1221",                    // actual spark actor who triggered the webhook (source event)
+//     "actorId":"Y2lzY29zcGFyazovL3VzL1dFQkhPT0svZjRlNjA1NjAtNjYwMi353454123E1221",                    // actual actor who triggered the webhook (source event)
 //     "data":{
 //          ...
 //          EVENT SPECIFIC 
@@ -38,15 +38,15 @@ Utils.checkWebhookEvent = function(payload) {
     if (!payload 	|| !payload.id 
                     || !payload.name 
 					|| !payload.created
-                    //August 2016: present but not integrated yet in Spark documentation
+                    //August 2016: present but not integrated yet in Webex Teams documentation
 					|| !payload.targetUrl     
                     || !payload.resource 
                     || !payload.event
-					// August 2016: present but not integrated yet in Spark documentation
+					// August 2016: present but not integrated yet in Webex Teams documentation
                     || !payload.actorId       
 					|| !payload.data
 					) {
-			debug("received payload is not compliant with Spark Webhook specification");
+			debug("received payload is not compliant with Webhook specifications");
 			return false;
     }
 
@@ -73,7 +73,7 @@ Utils.checkWebhookEvent = function(payload) {
 
 
 //  Returns a message if the payload complies with the documentation, undefined otherwise
-//  see https://developer.ciscospark.com/endpoint-messages-messageId-get.html for more information
+//  see https://developer.webex.com/endpoint-messages-messageId-get.html for more information
 //   {
 //   	"id" : "46ef3f0a-e810-460c-ad37-c161adb48195",
 //   	"personId" : "49465565-f6db-432f-ab41-34b15f544a36",
@@ -105,11 +105,11 @@ function checkMessageDetails(payload) {
 }
 
 
-// Reads message text by requesting Spark API as webhooks only receives message identifiers
+// Reads message text by requesting Webex Teams API as webhooks only receives message identifiers
 Utils.readMessage = function(messageId, token, cb) {
     if (!messageId || !token) {
-        debug("undefined messageId or Spark Token, cannot read message details");
-        cb(new Error("undefined messageId or Spark Token, cannot read message details"), null);
+        debug("undefined messageId or token, cannot read message details");
+        cb(new Error("undefined messageId or token, cannot read message details"), null);
         return;
     }
 
@@ -134,13 +134,13 @@ Utils.readMessage = function(messageId, token, cb) {
 
                 case 401: 
                     debug("error 401, invalid token");
-                    debug("? Did you picked a valid Spark access token, worth checking this");
+                    debug("? Did you picked a valid access token, worth checking this");
                     cb(new Error("Could not fetch message details, statusCode: " + response.statusCode), null);
                     return;
 
                 case 404: 
                     // happens when the message details cannot be accessed, either because no message exists for the specified id,
-                    // or because the webhook was created with a Spark access token different from the bot (which then can see the events triggered but not decrypt sensitive contents)
+                    // or because the webhook was created with an access token different from the bot (which then can see the events triggered but not decrypt sensitive contents)
                     debug("error 404, could not find the message with id: " + messageId);
                     debug("? Did you create the Webhook with the same token you configured this bot with ? If so, message may have been deleted before you got the chance to read it");
                     cb(new Error("Could not fetch message details, statusCode: " + response.statusCode), null);
@@ -174,7 +174,7 @@ Utils.readMessage = function(messageId, token, cb) {
 }
 
 // Returns true if the request has been signed with the specified secret
-// see Cisco Spark API to authenticate requests : https://developer.ciscospark.com/webhooks-explained.html#auth
+// see Webex Teams API to authenticate requests : https://developer.webex.com/webhooks-explained.html#auth
 Utils.checkSignature = function(secret, req) {
     var signature = req.headers["x-spark-signature"];
     if (!signature) {

@@ -1,13 +1,13 @@
 # node-sparkbot
 
-Yet [another opiniated framework](https://github.com/CiscoDevNet/awesome-ciscospark#bot-frameworks) to quickly build [Cisco Spark Bots](https://developer.ciscospark.com/bots.html) in nodejs:
-- with a simple design to help you learn and experiment Spark webhooks concepts in a snatch,
-- and flexible enough to let your bot listen to raw webhook events, or directly respond to commands,  
-- leveraged by a few DevNet learning labs, and bot samples. 
+Yet [another opiniated framework](https://github.com/CiscoDevNet/awesome-webex#bot-frameworks) to build [Webex Teams Bots](https://developer.webex.com/bots.html) in Node.js:
+- simple design to both learn and experiment Webhooks concepts in a snatch,
+- flexibility to let your bot listen to raw Webhook events, or directly respond to commands,  
+- leveraged by a few [DevNet learning labs](https://learninglabs.cisco.com/tracks/collab-cloud/spark-apps/collab-spark-botl-ngrok/step/1), and [bot samples](https://github.com/CiscoDevNet/node-sparkbot-samples). 
 
 This project focusses on the [framework itself](#architecture) and its [testing companions](./tests/README.md).
 
-If you're looking for ready-to-run Cisco Spark bots built with the library, jump to the [node-sparkbot-samples repo](https://github.com/CiscoDevNet/node-sparkbot-samples).
+If you're looking for ready-to-run Chatbots built with the library, jump to the [node-sparkbot-samples repo](https://github.com/CiscoDevNet/node-sparkbot-samples).
 
 
 ## Quickstart
@@ -42,9 +42,9 @@ Let's check it's live by hittinh its healthcheck endpoint:
 # or if you like formatting, install jq and run:
 $ curl http://localhost:8080 | jq -C
 {
-  "message": "Congrats, your Cisco Spark webhook is up and running",
+  "message": "Congrats, your Webex Teams webhook is up and running",
   "since": "2016-09-23T07:46:52.397Z",
-  "tip": "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html",
+  "tip": "Register your bot as a WebHook to start receiving events: https://developer.webex.com/endpoint-webhooks-post.html",
   "listeners": [
     "messages/created"
   ],
@@ -57,38 +57,40 @@ $ curl http://localhost:8080 | jq -C
 
 **Congrats, your bot is now up and running**
 
-Let's have Spark post us events :
+Now, let's make Webex post events to our bot.
 - if your bot is running on a local machine, you need to [expose your bot to the internet](docs/SettingUpYourSparkBot.md#expose-you-bot).
-- and last, [register your bot by creating a Spark Webhook](docs/SettingUpYourSparkBot.md#register-your-bot-as-a-spark-webhook).
+- and lastly, [register your bot by creating a Webhook](docs/SettingUpYourSparkBot.md#register-your-bot-as-a-spark-webhook).
 
-Note that if you want your bot to respond to commands, add a Spark API token on the command line (see below).
+Note that if you want your bot to respond to commands, add a Webex Teams API token on the command line (see below).
 
 Finally, we suggest you take a look at the [tests](tests/README.md) as they provide a great way to discover the framework features.
 
 
 ### Respond to commands
 
-At startup, the library looks for a SPARK_TOKEN environment variable.
-If present, the library will leverage the token to retreive new message contents, and automatically detect the Spark account associated to the token and take initialization options to fit common scenarios, see [Account detection](#account-type-detection).
+At startup, the library looks for the ACCESS_TOKEN environment variable.
+> Note that ACCESS_TOKEN is still accepted but deprecated as of v1.x of the framework
+
+If present, the library will leverage the token to retreive new message contents, and automatically detect the Webex Teams account associated to the token and take initialization options to fit common scenarios, see [Account detection](#account-type-detection).
 
 As messages flow in, the library automatically removes bot mentions when relevant, so that you can focus on the command itself.
 
 ```shell
-DEBUG=sparkbot*  SPARK_TOKEN=MY_VERY_SECRET_ACCESS_TOKEN   node tests/onCommand.js
+DEBUG=sparkbot*  ACCCESS_TOKEN=Very_Secret  node tests/onCommand.js
 
 ...
   sparkbot webhook instantiated with default configuration +0ms
   sparkbot addMessagesCreatedListener: listener registered +89ms
-  sparkbot Cisco Spark bot started on port: 8080 +8ms
+  sparkbot bot started on port: 8080 +8ms
   sparkbot:interpreter bot account detected, name: CiscoDevNet (bot) +1s
 ```
 
 
 ## Architecture
 
-The library supports the full set of Cisco Spark webhooks, see https://developer.ciscospark.com/webhooks-explained.html
+The library supports the full set of Webex Teams webhooks, see https://developer.webex.com/webhooks-explained.html
 
-As Spark fires Webhook events, the related listener functions are called.
+As Webex fires Webhook events, the related listener functions are called.
 
 You can register to listen to a WebHook event by calling the function **".on(<resources>,<event>)"**
 
@@ -108,7 +110,7 @@ bot.onEvent("all", "all", function(trigger) {
 This other example code [onEvent-messages-created.js](tests/onEvent-messages-created.js) illustrates how to listen to (Messages/Created) Webhook events.
 
 ```javascript
-// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 var SparkBot = require("sparkbot");
 var bot = new SparkBot();
 
@@ -132,13 +134,13 @@ bot.onEvent("messages", "created", function(trigger) {
 The library also provides a shortcut easy way to listen to only new messages, via the .onMessage() function.
 
 Note that this function is not only a shorcut to create a **".on('messages', 'created')"** listener.
-It also automatically fetches for you the text of the new message by requesting Spark for the message details.
-As the message is fetched behind the scene, you should position a SPARK_TOKEN env variable when starting up your bot.
+It also automatically fetches for you the text of the new message by requesting Webex Teams for the message details.
+As the message is fetched behind the scene, you should position a ACCESS_TOKEN env variable when starting up your bot.
 
 Check the [onMessage.js](tests/onMessage.js) for an example:
 
 ```javascript
-// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
  
@@ -153,7 +155,7 @@ Note that most of the time, you'll want to check for the presence of a keyword t
 To that purpose, you can check this example: [onMessage-asCommand](tests/onMessage-asCommand.js).
 
 ```javascript
-// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 var SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
 
@@ -168,7 +170,7 @@ bot.onMessage(function (trigger, message) {
 });
 ```
 
-_Note that The onCommand function below is pretty powerful, as it not only checks for command keywords, but also removes any mention of your bot, as this mention is a Spark pre-requisite for your bot to receive a message in a group room,
+_Note that The onCommand function below is pretty powerful, as it not only checks for command keywords, but also removes any mention of your bot, as this mention is a Webex pre-requisite for your bot to receive a message in a group space,
 but it meaningless for your bot to process the message._
 
 Well that said, we're ready to go thru the creation of interactive assistants.
@@ -188,8 +190,8 @@ The library automatically exposes an healthcheck endpoint.
 As such, hitting GET / will respond a 200 OK with an attached JSON payload.
 
 The healcheck JSON payload will give you extra details: 
-- token:true  // if a Spark token was detected at launch
-- account     // detailled info about the spark account attached to the token
+- token:true  // if a token was detected at launch
+- account     // detailled info about the Webex Teams account tied to the token
 - listeners   // events for which your bot has registered a listener
 - commands    // commands for which your bot is ready to be activated
 - interpreter // preferences for the command interpreter
@@ -198,9 +200,9 @@ The healcheck JSON payload will give you extra details:
 ```json
 // Example of a JSON healthcheck
 {
-  "message": "Congrats, your Cisco Spark Bot is up and running",
+  "message": "Congrats, your Webex Teams bot is up and running",
   "since": "2016-09-01T13:15:39.425Z",
-  "tip": "Register your bot as a WebHook to start receiving events: https://developer.ciscospark.com/endpoint-webhooks-post.html"
+  "tip": "Register webhooks for your bot to start receiving events: https://developer.webex.com/endpoint-webhooks-post.html"
   "listeners": [
     "messages/created"
   ],
@@ -231,7 +233,7 @@ The healcheck JSON payload will give you extra details:
 
 ### Account Type Detection
 
-If a Cisco Spark API access token has been specified at launch, the library will request details about the Spark account.
+If a Webex teams API access token has been specified at launch, the library will request details about the Webex Teams account.
 From the person details provided, the library will infer if the token matches a individual (HUMAN) or a bot account (MACHINE).
 Because of restrictions concerning bots, the library will setup a default behavior from the account type, unless configuration parameters have already been provided at startup.
 
@@ -245,7 +247,7 @@ Here is the set of extra information and behaviors that relate to the automatic 
 
 ### Authenticating Requests via payload signature 
 
-To ensure paylods received by your bots come from Cisco Spark, you can supply a secret parameter at Webhook creation.
+To ensure paylods received by your bots come from Webex, you can supply a secret parameter at Webhook creation.
 Every payload posted to your bot will then contain an extra HTTP header "X-Spark-Signature" containing an HMAC-SHA1 signature of the payload.
 
 Once you've created the webhook for your bot with a secret parameter, 
@@ -253,13 +255,13 @@ you can either specify a SECRET environment variable on the command line or in y
 
 Command line example:
 ```shell
-DEBUG=sparkbot*  SPARK_TOKEN=your_bot_token WEBHOOK_SECRET=your_secret   node tests/onEvent-check-secret.js
+DEBUG=sparkbot*  ACCESS_TOKEN=your_bot_token WEBHOOK_SECRET=your_secret   node tests/onEvent-check-secret.js
 ...
 ```
 
 Code example:
 ```javascript
-// Starts your Webhook with default configuration where the SPARK API access token is read from the SPARK_TOKEN env variable 
+// Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
 SparkBot = require("node-sparkbot");
 var bot = new SparkBot();
 bot.secret = "not THAT secret"
@@ -291,8 +293,8 @@ node-sparkbot makes a minimal use of third party libraries :
 - express & body-parser: as its Web API foundation
 - htmlparser2: to filter out the bot mention from the message contents
 
-Morever, node-sparkbot does not embedd a Cisco Spark client SDK, 
-so that you can choose your favorite (ie, among ciscospark, node-sparky or node-sparclient...).
+Morever, node-sparkbot does not embedd any Webex Teams client SDK, 
+so that you can choose your favorite (ie, among ciscospark, node-sparky or node-sparkclient...) to interact with Webex.
 
 
 ## Contribute

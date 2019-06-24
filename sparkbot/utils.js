@@ -117,7 +117,7 @@ Utils.readMessage = function(messageId, token, cb) {
     fine("requesting message details for id: " + messageId);
     var options = {
                     'method': 'GET',
-                    'hostname': 'api.ciscospark.com',
+                    'hostname': process.env.WEBEX_API || 'api.ciscospark.com',
                     'path': '/v1/messages/' + messageId,
                     'headers': {'authorization': 'Bearer ' + token}
                 };

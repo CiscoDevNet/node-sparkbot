@@ -187,7 +187,7 @@ function detectAccount(token, cb) {
 	//console.log("checking account");
 	var options = {
 						'method': 'GET',
-						'hostname': 'api.ciscospark.com',
+						'hostname': process.env.WEBEX_API || 'api.ciscospark.com',
 						'path': '/v1/people/me',
 						'headers': {'authorization': 'Bearer ' + token}
 					};

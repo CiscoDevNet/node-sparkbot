@@ -31,7 +31,7 @@ Registration.createWebhook = function (token, name, targetUrl, resource, event, 
 
   // An object of options to indicate where to post to
   var post_options = {
-      host: 'api.ciscospark.com',
+      host: process.env.WEBEX_API || 'api.ciscospark.com',
       path: '/v1/webhooks',
       method: 'POST',
       headers: {
@@ -89,7 +89,7 @@ Registration.deleteWebhook = function (token, webhookId, cb) {
 
   // An object of options to indicate where to post to
   var req_options = {
-      host: 'api.ciscospark.com',
+      host: process.env.WEBEX_API || 'api.ciscospark.com',
       path: '/v1/webhooks/' + webhookId,
       method: 'DELETE',
       headers: {
@@ -140,7 +140,7 @@ Registration.listWebhooks = function (token, cb) {
 
   // An object of options to indicate where to post to
   var req_options = {
-      host: 'api.ciscospark.com',
+      host: process.env.WEBEX_API || 'api.ciscospark.com',
       path: '/v1/webhooks/',
       method: 'GET',
       headers: {

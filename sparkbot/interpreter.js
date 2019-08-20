@@ -51,7 +51,7 @@ function CommandInterpreter(config) {
 		self.person = people;
 
         // Decode account id identifier to better trim mentions (see trimMention)
-        var temp = new Buffer(people.id, 'base64');
+        var temp = Buffer.from(people.id, 'base64');
         self.person.rawId = temp.toString().substring(23);
 
         // Infer how Webex would generate a nickname for the bot,

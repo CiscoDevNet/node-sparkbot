@@ -276,8 +276,17 @@ However, the bot framework defines a flag so that you can ignore signature check
 ### Auto-Register Webhooks
 
 At startup, node-sparkbot can automatically create a Webhook for your bot, or verify if a webhook already exists with the specified name.
+Here are a few of the options supported:
+* Simplissime registration where defaults apply (all, all, no filter, no secret), and no callback
+   > bot.createOrUpdateWebhook("register-bot", "https://f6d5d937.ngrok.io");
+* Registration with no filter, no secret, and no callback
+   > bot.createOrUpdateWebhook("register-bot", "https://f6d5d937.ngrok.io", "all", "all");
+* Registration with a filter, no secret, no callback
+   > bot.createOrUpdateWebhook("register-bot", "https://f6d5d937.ngrok.io", "all", "all", "roomId=XXXXXXXXXXXXXXX");
+* Registration with no filter, but a secret and a callback
+   > bot.createOrUpdateWebhook("register-bot", publicURL, "all", "all", null, bot.secret, function (err, webhook) { ... }
 
-Check [onCommand-register.js](tests/onCommand-register.js) for an example.
+You can check [onCommand-webhook.js](tests/onCommand-webhook.js) for an example.
 
 ```javascript
 bot.createOrUpdateWebhook("register-bot", "https://f6d5d937.ngrok.io", "all", "all", null, bot.secret, function (err, webhook) {

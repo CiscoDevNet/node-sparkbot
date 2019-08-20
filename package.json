@@ -1,6 +1,6 @@
 {
   "name": "node-sparkbot",
-  "version": "v1.1.1",
+  "version": "v2.0.0",
   "description": "Register webhook for Webex and build Chatbots in Node.js",
   "main": "index.js",
   "keywords": [

@@ -32,19 +32,23 @@ module.exports = Utils;
 //          ...
 //     }
 //   } 
-var supportedResources = ["memberships", "messages", "rooms"];
-var supportedEvents = ["created", "deleted", "updated"];
+const supportedResources = ["attachmentActions", "memberships", "messages", "rooms"];
+const supportedEvents = ["created", "deleted", "updated"];
 Utils.checkWebhookEvent = function (payload) {
    if (!payload || !payload.id
       || !payload.name
       || !payload.created
-      //August 2016: present but not integrated yet in Webex Teams documentation
       || !payload.targetUrl
       || !payload.resource
       || !payload.event
-      // August 2016: present but not integrated yet in Webex Teams documentation
       || !payload.actorId
       || !payload.data
+      || !payload.status
+      || !payload.createdBy
+      // Extract fields introduced (not checked for now)
+      //|| !payload.appId
+      //|| !payload.orgId
+      //|| !payload.ownedBy
    ) {
       debug("received payload is not compliant with Webhook specifications");
       return false;
@@ -94,7 +98,8 @@ Utils.checkWebhookEvent = function (payload) {
 //   	"created" : "2015-10-18T14:26:16+00:00"
 //   }
 function checkMessageDetails(payload) {
-   if (!payload || !payload.id
+   if (!payload 
+      || !payload.id
       || !payload.personId
       || !payload.personEmail
       // As of July 2016, Message Details has been enriched with the Room type,
@@ -230,7 +235,7 @@ function checkAttachmentActionsDetails(payload) {
       debug("attachmentActions structure is not compliant: missing property");
       return false;
    }
-   if (!payload.inputs.keys().size == 0) {
+   if (Object.keys(payload.inputs).length == 0) {
       debug("attachmentActions structure is not compliant: no inputs");
       return false;
    }
@@ -251,7 +256,7 @@ Utils.readAttachmentActions = function (attachmentActionsId, token, cb) {
    var options = {
       'method': 'GET',
       'hostname': process.env.WEBEX_API || 'api.ciscospark.com',
-      'path': '/v1/attachmentActions/' + attachmentActionsId,
+      'path': '/v1/attachment/actions/' + attachmentActionsId,
       'headers': { 'authorization': 'Bearer ' + token }
    };
 

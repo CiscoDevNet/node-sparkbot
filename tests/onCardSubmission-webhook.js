@@ -35,8 +35,8 @@ bot.onCardSubmission(function (trigger, attachmentActions) {
    //
    // ADD YOUR CUSTOM CODE HERE
    //
-   console.log(`new attachmentActions from: ${trigger.data.personEmail} , with inputs`);
-   attachmentActions.inputs.keys().forEach(prop => {
+   console.log(`new attachmentActions from personId: ${trigger.data.personId} , with inputs`);
+   Object.keys(attachmentActions.inputs).forEach(prop => {
       console.log(`   ${prop}: ${attachmentActions.inputs[prop]}`);
    });
 

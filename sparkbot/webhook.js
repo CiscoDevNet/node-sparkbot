@@ -17,10 +17,6 @@ var CommandInterpreter = require("./interpreter");
 var CommandRouter = require("./router");
 var Registration = require("./registration");
 
-var webhookResources = ["attachmentActions", "memberships", "messages", "rooms"];
-var webhookEvents = ["created", "deleted", "updated"];
-
-
 
 /* Creates a Webex Teams webhook with specified configuration structure: 
  *  
@@ -162,7 +158,7 @@ function Webhook(config) {
          }
 
          // event is ready to be processed, let's send a response to Webex without waiting any longer
-         res.status(200).json({ message: "message received and being processed by webhook" });
+         res.status(200).json({ message: "notification received and being processed by webhook" });
 
          // process HMAC-SHA1 signature if a secret has been specified
          // [NOTE@ for security reasons, we check the secret AFTER responding to Webex

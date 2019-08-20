@@ -35,7 +35,7 @@ node tests/onEvent-all-all.js
 
 **Done, your bot is live**
 
-Let's check it's live by hittinh its healthcheck endpoint:
+Let's check it's live by hitting its healthcheck endpoint:
 
 ```
 # simply run: curl http://localhost:8080 
@@ -83,6 +83,92 @@ DEBUG=sparkbot*  ACCCESS_TOKEN=Very_Secret  node tests/onCommand.js
   sparkbot addMessagesCreatedListener: listener registered +89ms
   sparkbot bot started on port: 8080 +8ms
   sparkbot:interpreter bot account detected, name: CiscoDevNet (bot) +1s
+```
+
+
+### Capture inputs submitted via Cards
+
+We'll use a sample card that proposes a single `name` entry field.
+
+![](docs/img/card-submission.png)
+
+To create the card, create a Webex Teams space and place the following requests with the roomId of your space, typically via Postman.
+Note: you can use this [postman collection](https://www.getpostman.com/collections/1f5e101d8290a5303c90) to experiment with Cards. After importing the collection, make sure to add a BOT_TOKEN variable to your Postman environment.
+
+```
+POST https://api.ciscospark.com/v1/messages
+Authorization: Bearer YOUR_BOT_TOKEN
+{{
+    "roomId": "{{_room}}",
+    "markdown": "[Learn more](https://adaptivecards.io) about Adaptive Cards.",
+    "attachments": [
+        {
+            "contentType": "application/vnd.microsoft.card.adaptive",
+            "content": {
+                "type": "AdaptiveCard",
+                "version": "1.0",
+                "body": [
+                    {
+                        "type": "TextBlock",
+                        "text": "Please enter your name:"
+                    },
+                    {
+                        "type": "Input.Text",
+                        "id": "name",
+                        "title": "New Input.Toggle",
+                        "placeholder": "name"
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "Action.Submit",
+                        "title": "Submit"
+                    }
+                ]
+            }
+        }
+    ]
+}
+``` 
+
+As cards are submitted, the [onCardSubmission()]() function invokes your custom code logic.
+Note: if a PUBLIC_URL environment variable is present, the example will automatically create a Webhook.
+
+```shell
+ DEBUG=sparkbot ACCESS_TOKEN=Y2QzMz_typically_a_bot_token_JlODAzZmItYTVm PUBLIC_URL="https://d3fc85fe.ngrok.io" node tests/onCardSubmission-webhook.js
+
+...
+ sparkbot webhook instantiated with default configuration +0ms
+  sparkbot bot started on port: 8080 +37ms
+  sparkbot webhook already exists with same properties, no creation needed +664ms
+webhook successfully checked, with id: Y2lzY29zcGFyazovL3VzL1dFQkhPT0svYTkyYWU5NjMtOTNmYS00YTE0LWEwOGItYTMzMjQ5MzA3MGQ4
+  sparkbot webhook invoked +9s
+  sparkbot calling listener for resource/event: attachmentActions/created, with data context: Y2lzY29zcGFyazovL3VzL0FUVEFDSE1FTlRfQUNUSU9OLzkyNmEzNDYwLWMzMjktMTFlOS05OGQyLTg5ZDBlNGQyZDU1Mg +6ms
+new attachmentActions from personId: Y2lzY29zcGFyazovL3VzL1BFT1BMRS85MmIzZGQ5YS02NzVkLTRhNDEtOGM0MS0yYWJkZjg5ZjQ0ZjQ , with inputs
+   name: CiscoDevNet
+```
+
+
+Here is the code used by the sample, hou can check the full code sample here:
+
+```javascript
+// Starts your Webhook with a default configuration where the Webex API access token is read from ACCESS_TOKEN
+const SparkBot = require("../sparkbot/webhook");
+const bot = new SparkBot();
+
+// Create webhook
+const publicURL = process.env.PUBLIC_URL || "https://d3fc85fe.ngrok.io";
+bot.secret = process.env.WEBHOOK_SECRET || "not THAT secret";
+bot.createOrUpdateWebhook("register-bot", publicURL, "attachmentActions", "created", null, bot.secret);
+ 
+// Process new card submissions
+bot.onCardSubmission(function (trigger, attachmentActions) {
+
+   console.log(`new attachmentActions from personId: ${trigger.data.personId} , with inputs`);
+   Object.keys(attachmentActions.inputs).forEach(prop => {
+      console.log(`   ${prop}: ${attachmentActions.inputs[prop]}`);
+   });
+});
 ```
 
 
@@ -178,10 +264,16 @@ Well that said, we're ready to go thru the creation of interactive assistants.
 
 ### Interactive assistants
 
-- respond to commands (keywords) via an .onCommand() listener function
-- option to trim mention if your bot is mentionned in a group room
-- option to specify a fallback command
-- check [onCommand](tests/onCommand.js) sample
+To implement an interative assistant, you would typically:
+- respond to commands (keywords) via an `onCommand()` listener function
+   - with an option to trim mention if your bot is mentionned in a group room
+   - and an option to specify a fallback command
+   - please check [onCommand](tests/onCommand.js) sample
+- respond to attachementActions submissions (cards) via an `onCardSubmission()` listener function
+   - please check [onCardSubmission](tests/onCardSubmission.js) sample
+- manually create a webhook via a POST /webhooks request against the Webex REST API
+   - OR use the `createOrUpdateWebhook()` function 
+   - please check [onCommand-webhook](tests/onCommand-webhook.js) or [onCardSubmission-webhook](tests/onCardSubmission-webhook.js) samples
 
 
 ### Healthcheck

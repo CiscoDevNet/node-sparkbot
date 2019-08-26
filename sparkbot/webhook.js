@@ -118,7 +118,7 @@ function Webhook(config) {
    started = Date.now();
    app.route(config.path)
       .get(function (req, res) {
-         debug("healtch check hitted");
+         debug("healthcheck hitted");
          var package = require("../package.json");
          res.json({
             message: "Congrats, your bot is up and running",

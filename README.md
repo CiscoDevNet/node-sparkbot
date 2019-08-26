@@ -1,8 +1,9 @@
-# node-sparkbot
+# Build Webex ChatBots in JavaScript
 
 Yet [another opiniated framework](https://github.com/CiscoDevNet/awesome-webex#bot-frameworks) to build [Webex Teams Bots](https://developer.webex.com/bots.html) in Node.js:
 - simple design to both learn and experiment Webhooks concepts in a snatch,
 - flexibility to let your bot listen to raw Webhook events, or directly respond to commands,  
+- supports [Webex Cards](https://github.com/CiscoDevNet/node-sparkbot#capture-inputs-submitted-via-cards) and [webhook check (creation/update)](https://github.com/CiscoDevNet/node-sparkbot#auto-register-webhooks),
 - leveraged by a few [DevNet learning labs](https://learninglabs.cisco.com/tracks/collab-cloud/spark-apps/collab-spark-botl-ngrok/step/1), and [bot samples](https://github.com/CiscoDevNet/node-sparkbot-samples). 
 
 This project focusses on the [framework itself](#architecture) and its [testing companions](./tests/README.md).

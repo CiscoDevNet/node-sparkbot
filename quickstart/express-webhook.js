@@ -10,16 +10,16 @@
  *
  */
 
-var express = require("express");
-var app = express();
+const express = require("express");
+const app = express();
 
-var bodyParser = require("body-parser");
+const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-var debug = require("debug")("samples");
+const debug = require("debug")("samples");
 
-var started = Date.now();
+const started = Date.now();
 app.route("/")
     // healthcheck
     .get(function (req, res) {
@@ -55,7 +55,7 @@ app.route("/")
 //
 // [WORKAROUND] in some container situation (ie, Cisco Shipped), we need to use an OVERRIDE_PORT to force our bot to start and listen to the port defined in the Dockerfile (ie, EXPOSE), 
 // and not the PORT dynamically assigned by the host or scheduler.
-var port = process.env.OVERRIDE_PORT || process.env.PORT || 8080;
+const port = process.env.OVERRIDE_PORT || process.env.PORT || 8080;
 app.listen(port, function () { 
     console.log("Webex Teams bot started at http://localhost:" + port + "/");
     console.log("   GET  / for health checks");

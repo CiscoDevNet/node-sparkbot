@@ -8,10 +8,9 @@
  * 
  */
 
-var SparkBot = require("node-sparkbot");
-
 // Starts your Webhook with default configuration 
-var bot = new SparkBot();
+const SparkBot = require("node-sparkbot");
+const bot = new SparkBot();
  
 bot.onEvent("all", "all", function(trigger) {
   

@@ -10,10 +10,9 @@
  *  
  */
 
-var SparkBot = require("node-sparkbot");
-
 // Starts your Webhook with default configuration where the Webex Teams API access token is read from the ACCESS_TOKEN env variable 
-var bot = new SparkBot();
+const SparkBot = require("node-sparkbot");
+const bot = new SparkBot();
 
 bot.onEvent("messages", "created", function(trigger) {
   console.log("new message from: " + trigger.data.personEmail + ", in room: " + trigger.data.roomId);

@@ -187,9 +187,9 @@ function detectAccount(token, cb) {
 	//console.log("checking account");
 	var options = {
 						'method': 'GET',
-						'hostname': process.env.WEBEX_API || 'api.ciscospark.com',
-						'path': '/v1/people/me',
-						'headers': {'authorization': 'Bearer ' + token}
+						'hostname': process.env.WEBEX_API || 'api.ciscospark.com/v1',
+						'path': '/people/me',
+                  'headers': {'authorization': 'Bearer ' + token}
 					};
 	var req = https.request(options, function (response) {
 		var chunks = [];

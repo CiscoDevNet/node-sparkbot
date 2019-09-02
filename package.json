@@ -1,7 +1,7 @@
 {
   "name": "node-sparkbot",
-  "version": "v2.1.1",
-  "description": "Build Webex Chatbots in Node.js",
+  "version": "v2.2.0",
+  "description": "Build Webex chatbots in Node.js",
   "main": "index.js",
   "keywords": [
     "Webex",
@@ -11,7 +11,7 @@
     "ChatBot"
   ],
   "scripts": {
-    "start": "node quickstart/onEvent-all-all.js"
+    "start": "node tests/onCardSubmission-webhook.js"
   },
   "homepage": "https://github.com/CiscoDevNet/node-sparkbot#readme",
   "repository": {

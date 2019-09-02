@@ -130,8 +130,8 @@ Utils.readMessage = function (messageId, token, cb) {
    fine("requesting message details for id: " + messageId);
    var options = {
       'method': 'GET',
-      'hostname': process.env.WEBEX_API || 'api.ciscospark.com',
-      'path': '/v1/messages/' + messageId,
+      'hostname': process.env.WEBEX_API || 'api.ciscospark.com/v1',
+      'path': '/messages/' + messageId,
       'headers': { 'authorization': 'Bearer ' + token }
    };
 
@@ -255,8 +255,8 @@ Utils.readAttachmentActions = function (attachmentActionsId, token, cb) {
    fine("requesting attachmentActions details for id: " + attachmentActionsId);
    var options = {
       'method': 'GET',
-      'hostname': process.env.WEBEX_API || 'api.ciscospark.com',
-      'path': '/v1/attachment/actions/' + attachmentActionsId,
+      'hostname': process.env.WEBEX_API || 'api.ciscospark.com/v1',
+      'path': '/attachment/actions/' + attachmentActionsId,
       'headers': { 'authorization': 'Bearer ' + token }
    };
 

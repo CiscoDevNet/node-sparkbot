@@ -3,14 +3,13 @@
 // Licensed under the MIT License 
 //
 
-var https = require("https");
+const got = require("got");
+const crypto = require("crypto");
 
-var crypto = require("crypto");
+const debug = require("debug")("sparkbot:utils");
+const fine = require("debug")("sparkbot:utils:fine");
 
-var debug = require("debug")("sparkbot:utils");
-var fine = require("debug")("sparkbot:utils:fine");
-
-var Utils = {};
+const Utils = {};
 module.exports = Utils;
 
 
@@ -98,7 +97,7 @@ Utils.checkWebhookEvent = function (payload) {
 //   	"created" : "2015-10-18T14:26:16+00:00"
 //   }
 function checkMessageDetails(payload) {
-   if (!payload 
+   if (!payload
       || !payload.id
       || !payload.personId
       || !payload.personEmail
@@ -128,19 +127,21 @@ Utils.readMessage = function (messageId, token, cb) {
 
    // Retreive text for message id
    fine("requesting message details for id: " + messageId);
-   var options = {
-      'method': 'GET',
-      'hostname': process.env.WEBEX_API || 'api.ciscospark.com/v1',
-      'path': '/messages/' + messageId,
-      'headers': { 'authorization': 'Bearer ' + token }
-   };
 
-   var req = https.request(options, function (response) {
-      var chunks = [];
-      response.on('data', function (chunk) {
-         chunks.push(chunk);
-      });
-      response.on("end", function () {
+   const client = got.extend({
+      baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
+      headers: {
+         'authorization': 'Bearer ' + token
+      },
+      json: true
+   });
+
+   const resource = '/messages/' + messageId;
+   (async () => {
+      try {
+         const response = await client.get(resource);
+         fine(`GET ${resource} received a: ${response.statusCode}`);
+
          switch (response.statusCode) {
             case 200:
                break; // we're good, let's continue
@@ -166,9 +167,7 @@ Utils.readMessage = function (messageId, token, cb) {
          }
 
          // Robustify
-         fine("parsing JSON");
-         var message = JSON.parse(Buffer.concat(chunks));
-         debug("JSON parsed: " + JSON.stringify(message));
+         const message = response.body;
          if (!checkMessageDetails(message)) {
             debug("unexpected message format");
             cb(new Error("unexpected message format while retreiving message id: " + messageId), null);
@@ -177,13 +176,13 @@ Utils.readMessage = function (messageId, token, cb) {
 
          fine("pushing message details to callback function");
          cb(null, message);
-      });
-   });
-   req.on('error', function (err) {
-      debug("error while retreiving message details with id: " + messageId + ", error: " + err);
-      cb(new Error("error while retreiving message"), null);
-   });
-   req.end();
+
+      } catch (error) {
+         fine(`error in ${resource}, code: ${error.code}`)
+         debug("error while retreiving message details with id: " + messageId + ", error: " + error.message);
+         cb(new Error("error while retreiving message"), null);
+      }
+   })();
 }
 
 // Returns true if the request has been signed with the specified secret
@@ -253,19 +252,20 @@ Utils.readAttachmentActions = function (attachmentActionsId, token, cb) {
 
    // Retreive contents for attachmentActions
    fine("requesting attachmentActions details for id: " + attachmentActionsId);
-   var options = {
-      'method': 'GET',
-      'hostname': process.env.WEBEX_API || 'api.ciscospark.com/v1',
-      'path': '/attachment/actions/' + attachmentActionsId,
-      'headers': { 'authorization': 'Bearer ' + token }
-   };
+   const client = got.extend({
+      baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
+      headers: {
+         'authorization': 'Bearer ' + token
+      },
+      json: true
+   });
 
-   var req = https.request(options, function (response) {
-      var chunks = [];
-      response.on('data', function (chunk) {
-         chunks.push(chunk);
-      });
-      response.on("end", function () {
+   const resource = '/attachment/actions/' + attachmentActionsId;
+   (async () => {
+      try {
+         const response = await client.get(resource);
+         fine(`GET ${resource} received a: ${response.statusCode}`);
+
          switch (response.statusCode) {
             case 200:
                break; // we're good, let's continue
@@ -292,8 +292,7 @@ Utils.readAttachmentActions = function (attachmentActionsId, token, cb) {
 
          // Robustify
          fine("parsing JSON");
-         var attachmentActions = JSON.parse(Buffer.concat(chunks));
-         debug("JSON parsed: " + JSON.stringify(attachmentActions));
+         const attachmentActions = response.body; 
          if (!checkAttachmentActionsDetails(attachmentActions)) {
             debug("unexpected attachmentActions format");
             cb(new Error("unexpected format while retreiving attachmentActions id: " + attachmentActionsId), null);
@@ -302,13 +301,13 @@ Utils.readAttachmentActions = function (attachmentActionsId, token, cb) {
 
          fine("pushing attachmentActions details to callback function");
          cb(null, attachmentActions);
-      });
-   });
-   req.on('error', function (err) {
-      debug("error while retreiving attachmentActions details with id: " + attachmentActionsId + ", error: " + err);
-      cb(new Error("error while retreiving attachmentActions"), null);
-   });
-   req.end();
+
+      } catch (error) {
+         fine(`error in ${resource}, code: ${error.code}`)
+         debug("error while retreiving attachmentActions details with id: " + attachmentActionsId + ", error: " + error);
+         cb(new Error("error while retreiving attachmentActions"), null);
+      }
+   })();
 }
 
 

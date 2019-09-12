@@ -3,13 +3,12 @@
 // Licensed under the MIT License 
 //
 
-var https = require("https");
-var querystring = require('querystring');
+const got = require("got");
 
-var debug = require("debug")("sparkbot:utils");
-var fine = require("debug")("sparkbot:utils:fine");
+const debug = require("debug")("sparkbot:utils");
+const fine = require("debug")("sparkbot:utils:fine");
 
-var Registration = {};
+const Registration = {};
 module.exports = Registration;
 
 
@@ -19,65 +18,67 @@ module.exports = Registration;
 //
 Registration.createWebhook = function (token, name, targetUrl, resource, event, filter, secret, cb) {
 
-  // Build the post string from an object
-  var post_data = JSON.stringify({
-     'name':name,
-     'resource': resource,
-     'event': event,
-     'targetUrl': targetUrl,
-     'filter' : filter,
-     'secret': secret 
-  });
+   // Build the post string from an object
+   const post_data = {
+      'name': name,
+      'resource': resource,
+      'event': event,
+      'targetUrl': targetUrl
+   };
+   if (filter) {
+      post_data.filter = filter;
+   }
+   if (secret) {
+      post_data.secret = secret;
+   }
 
-  // An object of options to indicate where to post to
-  var post_options = {
-      host: process.env.WEBEX_API || 'api.ciscospark.com/v1',
-      path: '/webhooks',
-      method: 'POST',
+   // Request instance
+   const client = got.extend({
+      baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
       headers: {
-		  'Authorization' : 'Bearer ' + token,
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(post_data)
+         'authorization': 'Bearer ' + token
       }
-  };
+   });
 
-	var req = https.request(post_options, function (response) {
-		var chunks = [];
-		response.on('data', function (chunk) {
-			chunks.push(chunk);
-		});
-		response.on("end", function () {
-            switch (response.statusCode) {
-                case 200:
-                    break; // we're good, let's proceed
-            
-                case 401:
-                    debug("Webex authentication failed: 401, bad token");
-                    if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
-                    return;
+   // Invoke Webex API
+   const path = '/webhooks';
+   (async () => {
+      try {
+         const response = await client.post(path, {
+            body: post_data,
+            json: true,
+            responseType: 'json'
+         });
+         fine(`POST ${path} received a: ${response.statusCode}`);
 
-                default: 
-                    debug("could not create WebHook, status code: " + response.statusCode);
-                    if (cb) cb(new Error("response status: " + response.statusCode), null);
-                    return;
-            }
-				
-			// [TODO] Robustify by checking the payload format
+         switch (response.statusCode) {
+            case 200:
+               break; // we're good, let's proceed
 
-			// Return
-			var webhook = JSON.parse(Buffer.concat(chunks));
-			fine("webhook created, id: " + webhook.id);
-			if (cb) cb(null, webhook);
-		});
-	});
-	
-	// post the data
-	req.on('error', function(err) {
-		debug("cannot find create the webhook, error: " + err);
-		if (cb) cb(new Error("cannot find create the webhook"), null);
-	});
-	req.write(post_data);
-	req.end();
+            case 401:
+               debug("Webex authentication failed: 401, bad token");
+               if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
+               return;
+
+            default:
+               debug("could not create WebHook, status code: " + response.statusCode);
+               if (cb) cb(new Error("response status: " + response.statusCode), null);
+               return;
+         }
+
+         // [TODO] Robustify by checking the payload format
+
+         // Return
+         const webhook = response.body;
+         fine("webhook created, id: " + webhook.id);
+         if (cb) cb(null, webhook);
+
+      } catch (error) {
+         fine(`error while invoking: ${path}, code: ${error.code}`)
+         debug("cannot create the webhook, error: " + error.message);
+         if (cb) cb(new Error("cannot create the webhook"), null);
+      }
+   })();
 }
 
 
@@ -87,47 +88,45 @@ Registration.createWebhook = function (token, name, targetUrl, resource, event, 
 //
 Registration.deleteWebhook = function (token, webhookId, cb) {
 
-  // An object of options to indicate where to post to
-  var req_options = {
-      host: process.env.WEBEX_API || 'api.ciscospark.com/v1',
-      path: '/webhooks/' + webhookId,
-      method: 'DELETE',
+   // Request instance
+   const client = got.extend({
+      baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
       headers: {
-		  'Authorization' : 'Bearer ' + token
+         'authorization': 'Bearer ' + token
+      },
+      json: true
+   });
+
+   // Invoke Webex API
+   const resource = '/webhooks/' + webhookId;
+   (async () => {
+      try {
+         const response = await client.delete(resource);
+         fine(`DELETE ${resource} received a: ${response.statusCode}`);
+
+         switch (response.statusCode) {
+            case 204:
+               break; // we're good, let's proceed
+
+            case 401:
+               debug("Webex authentication failed: 401, bad token");
+               if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
+               return;
+
+            default:
+               debug("could not delete Webhook, status code: " + response.statusCode);
+               if (cb) cb(new Error("response status: " + response.statusCode), null);
+               return;
+         }
+
+         if (cb) cb(null, 204);
+
+      } catch (error) {
+         fine(`error in ${resource}, code: ${error.code}`)
+         ddebug("cannot delete the webhook, error: " + error.message);
+         if (cb) cb(new Error("cannot delete the webhook"), null);
       }
-  };
-
-	var req = https.request(req_options, function (response) {
-		var chunks = [];
-		response.on('data', function (chunk) {
-			chunks.push(chunk);
-		});
-		response.on("end", function () {
-            switch (response.statusCode) {
-                case 204:
-                    break; // we're good, let's proceed
-            
-                case 401:
-                    debug("Webex authentication failed: 401, bad token");
-                    if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
-                    return;
-
-                default: 
-                    debug("could not delete Webhook, status code: " + response.statusCode);
-                    if (cb)  cb(new Error("response status: " + response.statusCode), null);
-                    return;
-            }
-				
-            if (cb) cb(null, 204);
-		});
-	});
-	
-	// post the data
-	req.on('error', function(err) {
-		debug("cannot delete the webhook, error: " + err);
-		if (cb) cb(new Error("cannot delete the webhook"), null);
-	});
-	req.end();
+   })();
 }
 
 
@@ -138,53 +137,54 @@ Registration.deleteWebhook = function (token, webhookId, cb) {
 //
 Registration.listWebhooks = function (token, cb) {
 
-  // An object of options to indicate where to post to
-  var req_options = {
-      host: process.env.WEBEX_API || 'api.ciscospark.com/v1',
-      path: '/webhooks/',
-      method: 'GET',
+   // Request instance
+   const client = got.extend({
+      baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
       headers: {
-		  'Authorization' : 'Bearer ' + token
+         'authorization': 'Bearer ' + token
+      },
+      json: true
+   });
+
+   // Invoke Webex API
+   const resource = '/webhooks';
+   (async () => {
+      try {
+         const response = await client.get(resource);
+         fine(`GET ${resource} received a: ${response.statusCode}`);
+
+         switch (response.statusCode) {
+            case 200:
+               break; // we're good, let's proceed
+
+            case 401:
+               debug("Webex authentication failed: 401, bad token");
+               if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
+               return;
+
+            default:
+               debug("could not retreive Webhook, status code: " + response.statusCode);
+               if (cb) cb(new Error("response status: " + response.statusCode), null);
+               return;
+         }
+
+         // [TODO] Robustify by checking the payload format
+         var payload = response.body;
+         if (!payload || !payload.items) {
+            debug("could not retreive Webhooks, malformed payload: ");
+            if (cb) cb(new Error("Could not retreive Webhooks, malformed payload"), null);
+            return;
+         }
+
+         // Return webhooks
+         if (cb) cb(null, payload.items);
+
+      } catch (error) {
+         fine(`error in ${resource}, code: ${error.code}`)
+         debug("cannot list webhooks, error: " + error.message);
+         if (cb) cb(new Error("cannot lists webhooks"), null);
       }
-  };
+   })();
 
-	var req = https.request(req_options, function (response) {
-		var chunks = [];
-		response.on('data', function (chunk) {
-			chunks.push(chunk);
-		});
-		response.on("end", function () {
-            switch (response.statusCode) {
-                case 200:
-                    break; // we're good, let's proceed
-            
-                case 401:
-                    debug("Webex authentication failed: 401, bad token");
-					if (cb) cb(new Error("response status: " + response.statusCode + ", bad token"), null);
-                    return;
-
-                default: 
-                    debug("could not retreive Webhook, status code: " + response.statusCode);
-					if (cb) cb(new Error("response status: " + response.statusCode), null);
-                    return;
-            }
-				
-			// [TODO] Robustify by checking the payload format
-			var payload = JSON.parse(Buffer.concat(chunks));
-			if (!payload || !payload.items) {
-				debug("could not retreive Webhooks, malformed payload: ");
-				if (cb) cb(new Error("Could not retreive Webhooks, malformed payload"), null);
-                return;
-			}
-
-            // Return webhooks
-			if (cb) cb(null, payload.items);
-		});
-	});
-	req.on('error', function(err) {
-		debug("cannot list webhooks, error: " + err);
-		if (cb) cb(new Error("cannot lists webhooks"), null);
-	});
-	req.end();
 }
 

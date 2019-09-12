@@ -182,6 +182,10 @@ function Webhook(config) {
    // Start bot
    app.listen(config.port, function () {
       debug("bot started on port: " + config.port);
+   }).on('error', (err) => {
+      console.log(`cannot launch bot, err: ${err.message}`);
+      console.log("existing...")
+      process.exit(1);
    });
 }
 

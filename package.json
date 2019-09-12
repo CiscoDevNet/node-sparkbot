@@ -1,6 +1,6 @@
 {
   "name": "node-sparkbot",
-  "version": "v2.2.0",
+  "version": "v2.3.0",
   "description": "Build Webex chatbots in Node.js",
   "main": "index.js",
   "keywords": [
@@ -24,6 +24,7 @@
     "body-parser": "^1.19.0",
     "debug": "^4.1.1",
     "express": "^4.17.1",
+    "got": "^9.6.0",
     "htmlparser2": "^3.10.1"
   }
 }

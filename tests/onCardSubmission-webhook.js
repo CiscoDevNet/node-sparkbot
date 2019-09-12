@@ -44,3 +44,11 @@ bot.onCardSubmission(function (trigger, attachmentActions) {
 
 
 
+bot.onMessage(function (trigger, message) {
+
+   //
+   // ADD YOUR CUSTOM CODE HERE
+   //
+   console.log("new message from: " + trigger.data.personEmail + ", text: " + message.text);
+});
+

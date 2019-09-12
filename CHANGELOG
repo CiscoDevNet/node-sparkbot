@@ -1,8 +1,16 @@
 
+v2.3 - support for the API emulator
+- migrated from 'https' to 'got'
+
+v2.2 - new WEBEX_API env variable
+- support for an alternative HTTPS endpoint 
+- examples: api emulator on Heroku, Glitch or over ngrok
+
+v2.1 - official support for webhook automation
+- robustified
+
 v2.0 - Support for Adaptive Cards
 - support for AttachmentActions
-- offical support for webhook automation
-- new WEBEX_API env variable to point to an alternative HTTPS endpoint (example: api emulator on Heroku, Glitch or over ngork)
 
 v1.0 - Webex Teams rebrand
 - Added support for 'webex.bot' domain

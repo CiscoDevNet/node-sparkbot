@@ -37,8 +37,7 @@ Registration.createWebhook = function (token, name, targetUrl, resource, event, 
       baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
       headers: {
          'authorization': 'Bearer ' + token
-      },
-      json: true
+      }
    });
 
    // Invoke Webex API
@@ -46,7 +45,8 @@ Registration.createWebhook = function (token, name, targetUrl, resource, event, 
    (async () => {
       try {
          const response = await client.post(path, {
-            json: post_data,
+            body: post_data,
+            json: true,
             responseType: 'json'
          });
          fine(`POST ${path} received a: ${response.statusCode}`);
@@ -69,7 +69,7 @@ Registration.createWebhook = function (token, name, targetUrl, resource, event, 
          // [TODO] Robustify by checking the payload format
 
          // Return
-         var webhook = response.body;
+         const webhook = response.body;
          fine("webhook created, id: " + webhook.id);
          if (cb) cb(null, webhook);
 

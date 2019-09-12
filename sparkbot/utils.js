@@ -3,14 +3,13 @@
 // Licensed under the MIT License 
 //
 
-var got = require("got");
+const got = require("got");
+const crypto = require("crypto");
 
-var crypto = require("crypto");
+const debug = require("debug")("sparkbot:utils");
+const fine = require("debug")("sparkbot:utils:fine");
 
-var debug = require("debug")("sparkbot:utils");
-var fine = require("debug")("sparkbot:utils:fine");
-
-var Utils = {};
+const Utils = {};
 module.exports = Utils;
 
 
@@ -129,7 +128,6 @@ Utils.readMessage = function (messageId, token, cb) {
    // Retreive text for message id
    fine("requesting message details for id: " + messageId);
 
-   const got = require("got");
    const client = got.extend({
       baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
       headers: {
@@ -254,7 +252,6 @@ Utils.readAttachmentActions = function (attachmentActionsId, token, cb) {
 
    // Retreive contents for attachmentActions
    fine("requesting attachmentActions details for id: " + attachmentActionsId);
-   const got = require("got");
    const client = got.extend({
       baseUrl: process.env.WEBEX_API || 'https://api.ciscospark.com/v1',
       headers: {
